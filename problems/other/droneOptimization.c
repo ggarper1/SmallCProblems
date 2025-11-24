@@ -1,4 +1,4 @@
-#include "../utils/include/random.h"
+#include "../../utils/include/random.h"
 #include <stdio.h>
 #include <stdlib.h>
 

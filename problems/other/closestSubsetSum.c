@@ -1,5 +1,5 @@
-#include "../utils/include/print.h"
-#include "../utils/include/random.h"
+#include "../../utils/include/print.h"
+#include "../../utils/include/random.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../utils/include/binaryTree.h"
-#include "../utils/include/random.h"
-#include "../utils/include/stack.h"
+#include "../../utils/include/binaryTree.h"
+#include "../../utils/include/random.h"
+#include "../../utils/include/stack.h"
 
 #define max(a, b)                                                              \
   ({                                                                           \
