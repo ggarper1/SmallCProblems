@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int numTests = 10;
+const int numTests = 10000;
 
 bool testPushPeek(Stack_t *stack, int size, int ***items) {
   *items = malloc(sizeof(int *) * size);
@@ -32,10 +32,10 @@ bool testPopPeek(Stack_t *stack, int **items, int size) {
     int *removed = sPop(stack);
 
     if (*peeked != *items[size - i]) {
-      printf("🚨 Peek should be %d, instead is %d.\n", *peeked, *items[i]);
+      printf("🚨 Peek should be %d, instead is %d.\n", *items[i], *peeked);
     }
     if (*removed != *items[size - i]) {
-      printf("🚨 Peek should be %d, instead is %d.\n", *peeked, *items[i]);
+      printf("🚨 Peek should be %d, instead is %d.\n", *items[i], *removed);
     }
     free(removed);
   }
