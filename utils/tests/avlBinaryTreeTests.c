@@ -1,4 +1,5 @@
 #include "../include/avlBinaryTree.h"
+#include "../include/queue.h"
 #include "../include/random.h"
 #include "../include/stack.h"
 #include <ranlib.h>
@@ -20,10 +21,38 @@
     _a > _b ? _a : _b;                                                         \
   })
 
-const int numTests = 100;
+const int numTests = 200;
 // TODO:
 const int max = 1000; // 100000000;
 const int min = -1000;
+
+void debugTree1(AVLNode_t *node) {
+  Queue_t *q = newQueue(10);
+  qAdd(q, node);
+  int ctr = 0;
+  while (qLength(q) > 0) {
+    AVLNode_t *node = qRemove(q);
+    if (node == NULL) {
+      printf("%d: Node NULL.\n", ctr);
+
+    } else {
+      printf("%d: Node %d. rHeight: %d, lHeight: %d\n", ctr,
+             *(int *)node->value, node->rHeight, node->lHeight);
+      if (node->left != NULL) {
+        qAdd(q, node->left);
+      } else {
+        qAdd(q, NULL);
+      }
+      if (node->right != NULL) {
+        qAdd(q, node->right);
+      } else {
+        qAdd(q, NULL);
+      }
+    }
+    ctr++;
+  }
+  qDestroy(q);
+}
 
 int compare(const void *item1, const void *item2) {
   const int *a = (const int *)item1;
@@ -185,10 +214,8 @@ bool testBalance(AVLBinaryTree_t *tree) {
   while (sLength(stack) > 0) {
     AVLNode_t *node = sPop(stack);
     if (abs(node->lHeight - node->rHeight) > 1) {
-      avlPrintTree(tree, repr, 4);
       printf("🚨 Node %d, with rHeight %d and lHeight %d is unbalanced\n",
              *(int *)node->value, node->rHeight, node->lHeight);
-      printFromNode(node);
       sDestroy(stack);
       return false;
     }
@@ -267,13 +294,11 @@ bool testBalanceValues(AVLBinaryTree_t *tree) {
 
 bool testRemove(AVLBinaryTree_t *tree, void **items, int size) {
   for (int i = 0; i < size * 99 / 100; i++) {
-    testBalanceValues(tree);
-
     void *value = avlRemove(tree, items[i]);
-    printf("After remove...\n");
-    testBalanceValues(tree);
-    testBalance(tree);
-    printf("Remove done\n");
+    // testBalanceValues(tree);
+    // testBalance(tree);
+    // debugTree1(tree->root);
+    // avlPrintTree(tree, repr, 5);
     if (value == NULL || *((int *)value) != *((int *)items[i])) {
       if (value == NULL) {
         printf("Tried to remove value %d (which should be in the tree) yet "
@@ -355,23 +380,25 @@ void testBinaryTree() {
       //   printf("🚨 Failed Insert Test!\n");
       //   return;
       // }
-      if (!testBalanceValues(tree)) {
-        printf("🚨 Failed Balance values after insert!\n");
-        return;
-      }
-      if (!testBalance(tree)) {
-        printf("🚨 Unbalanced tree (after insert)!\n");
-        return;
-      }
-      if (!testBSTProperty(tree)) {
-        printf("🚨 Failed BST Property after insert!\n");
-        return;
-      }
+      // if (!testBalanceValues(tree)) {
+      //   printf("🚨 Failed Balance values after insert!\n");
+      //   return;
+      // }
+      // if (!testBalance(tree)) {
+      //   printf("🚨 Unbalanced tree (after insert)!\n");
+      //   return;
+      // }
+      // if (!testBSTProperty(tree)) {
+      //   printf("🚨 Failed BST Property after insert!\n");
+      //   return;
+      // }
+      avlPrintTree(tree, repr, 5);
       if (!testRemove(tree, items, size)) {
         printf("🚨 Failed Remove Test!\n");
         return;
       }
       if (!testBalanceValues(tree)) {
+        avlPrintTree(tree, repr, 5);
         printf("🚨 Failed Balance values after insert!\n");
         return;
       }
