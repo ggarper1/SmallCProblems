@@ -90,7 +90,7 @@ void printStack(Stack_t *stack,
   printf("<- [%s", buffer);
 
   for (int i = stack->idx - 1; i > -1; i--) {
-    repr(stack->values[stack->idx], buffer, bufferSize);
+    repr(stack->values[i], buffer, bufferSize);
     printf(", %s", buffer);
   }
   printf("]\n");
