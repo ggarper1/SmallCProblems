@@ -200,14 +200,13 @@ bool testBSTProperty(AVLBinaryTree_t *tree) {
 }
 
 bool testBalance(AVLBinaryTree_t *tree) {
+  if (tree->root == NULL) {
+    return true;
+  }
   Stack_t *stack = newStack(tree->height * 2 + 1);
   if (stack == NULL) {
     printf("Could not allocate memory for stack");
     return false;
-  }
-
-  if (tree->root == NULL) {
-    return true;
   }
 
   sPush(stack, tree->root);
@@ -342,6 +341,10 @@ void testBinaryTree() {
       return;
     }
 
+    if (i < 8) {
+      avlPrintTree(tree, repr, 5);
+    }
+
     if (0) {
       if (!testBalance(tree)) {
         printf("🚨 Unbalanced tree!\n");
@@ -360,39 +363,38 @@ void testBinaryTree() {
         free(items[j]);
       }
     } else {
-      // if (!testBalanceValues(tree)) {
-      //   printf("🚨 Failed Balance values after insert!\n");
-      //   return;
-      // }
-      // if (!testBalance(tree)) {
-      //   printf("🚨 Unbalanced tree!\n");
-      //   return;
-      // }
-      // if (!testBSTProperty(tree)) {
-      //   printf("🚨 Failed BST Property!\n");
-      //   return;
-      // }
-      // if (!testFind(tree, items, size)) {
-      //   printf("🚨 Failed Find Test!\n");
-      //   return;
-      // }
-      // if (!testInsert(tree, size)) {
-      //   printf("🚨 Failed Insert Test!\n");
-      //   return;
-      // }
-      // if (!testBalanceValues(tree)) {
-      //   printf("🚨 Failed Balance values after insert!\n");
-      //   return;
-      // }
-      // if (!testBalance(tree)) {
-      //   printf("🚨 Unbalanced tree (after insert)!\n");
-      //   return;
-      // }
-      // if (!testBSTProperty(tree)) {
-      //   printf("🚨 Failed BST Property after insert!\n");
-      //   return;
-      // }
-      avlPrintTree(tree, repr, 5);
+      if (!testBalanceValues(tree)) {
+        printf("🚨 Failed Balance values after insert!\n");
+        return;
+      }
+      if (!testBalance(tree)) {
+        printf("🚨 Unbalanced tree!\n");
+        return;
+      }
+      if (!testBSTProperty(tree)) {
+        printf("🚨 Failed BST Property!\n");
+        return;
+      }
+      if (!testFind(tree, items, size)) {
+        printf("🚨 Failed Find Test!\n");
+        return;
+      }
+      if (!testInsert(tree, size)) {
+        printf("🚨 Failed Insert Test!\n");
+        return;
+      }
+      if (!testBalanceValues(tree)) {
+        printf("🚨 Failed Balance values after insert!\n");
+        return;
+      }
+      if (!testBalance(tree)) {
+        printf("🚨 Unbalanced tree (after insert)!\n");
+        return;
+      }
+      if (!testBSTProperty(tree)) {
+        printf("🚨 Failed BST Property after insert!\n");
+        return;
+      }
       if (!testRemove(tree, items, size)) {
         printf("🚨 Failed Remove Test!\n");
         return;

@@ -415,6 +415,8 @@ void *avlRemove(AVLBinaryTree_t *tree, const void *value) {
   }
 
   tree->length--;
+  sDestroy(stack);
+  bsDestroy(bstack);
   return ret;
 }
 
