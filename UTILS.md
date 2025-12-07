@@ -1,5 +1,7 @@
 # 📦 Data Structures
 
+Example usages below.
+
 ## Stack (`stack.h`)
 
 A Last-In-First-Out (LIFO) data structure with dynamic capacity.
