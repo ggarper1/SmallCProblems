@@ -1,10 +1,11 @@
 #include "../include/binaryTree.h"
 #include "../include/random.h"
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 const int numTests = 1000;
+const int max = 100000;
+const int min = 0;
 
 int compare(const void *item1, const void *item2) {
   const int *a = (const int *)item1;
@@ -23,57 +24,21 @@ void repr(BTNode_t *node, char *buffer, int bufferSize) {
   snprintf(buffer, bufferSize, "%d", *((int *)node->value));
 }
 
-BinaryTree_t *createTree(int size, void ***items) {
+BinaryTree_t *createTree() {
   BinaryTree_t *tree = newBinaryTree(&compare);
-  *items = malloc(sizeof(void *) * size);
 
   if (tree == NULL) {
     return NULL;
   }
 
-  for (int i = 0; i < size; i++) {
-    int *item = malloc(sizeof(int));
-    *item = randInt(-99, 99);
-    (*items)[i] = item;
-    BTNode_t *node = btInsert(tree, (void *)item);
-    if (node == NULL) {
-      return NULL;
-    }
-  }
-
   return tree;
 }
 
-bool testFind(BinaryTree_t *tree, void **items, int size) {
-  for (int i = 0; i < size; i++) {
-    BTNode_t *node = btFind(tree, items[i]);
-    if (node == NULL || *(int *)(node->value) != *(int *)(items[i])) {
-      printf("Items: %d", *(int *)items[0]);
-      for (int j = 1; j < size; j++) {
-        printf(", %d", *(int *)items[j]);
-      }
-      printf("\n");
-
-      if (node == NULL) {
-        printf("Element %d was not found when it should have.\n",
-               *(int *)items[i]);
-      } else {
-
-        printf("Node value returned (%d) does not match value being searched "
-               "for (%d).\n",
-               *(int *)node->value, *(int *)items[i]);
-      }
-      return false;
-    }
-  }
-  return true;
-}
-
-bool testBSTProperty(BinaryTree_t *tree) {
-  BTNode_t **nodes = malloc(sizeof(BTNode_t *) * (tree->height + 1));
+int testBSTProperty(BinaryTree_t *tree) {
+  BTNode_t **nodes = malloc(sizeof(BTNode_t *) * tree->length);
   if (nodes == NULL) {
-    printf("Could not allocate memory for tree with length %d", tree->height);
-    return false;
+    printf("Could not allocate memory for tree with length %lu", tree->length);
+    return 0;
   }
 
   nodes[0] = tree->root;
@@ -85,7 +50,7 @@ bool testBSTProperty(BinaryTree_t *tree) {
     if (l) {
       int comparison = tree->compare_func(node->left->value, node->value);
       if (!(comparison < 0)) {
-        return false;
+        return 0;
       }
       nodes[i] = node->left;
     }
@@ -94,8 +59,8 @@ bool testBSTProperty(BinaryTree_t *tree) {
     }
     if (r) {
       int comparison = tree->compare_func(node->right->value, node->value);
-      if (comparison < 0) {
-        return false;
+      if (comparison <= 0) {
+        return 0;
       }
       nodes[i] = node->right;
     }
@@ -106,74 +71,101 @@ bool testBSTProperty(BinaryTree_t *tree) {
 
   free(nodes);
 
-  return true;
+  return 1;
 }
 
-bool testInsert(BinaryTree_t *tree) {
-  for (int i = 0; i < 50; i++) {
+int testInsert(BinaryTree_t *tree, int size, int ***items) {
+  int i = 0;
+  while (i < size) {
     int *item = malloc(sizeof(int));
-    *item = randInt(-99, 99);
-    BTNode_t *node = btInsert(tree, (void *)item);
-    if (node == NULL || *((int *)node->value) != *item) {
-      if (node == NULL) {
-        printf("Tried to insert value %d yet NULL node was returned.\n", *item);
-      } else {
+    *item = randInt(min, max);
+
+    BTNode_t *node;
+    int status = btInsert(tree, item, &node);
+    if (status == BT_ERROR) {
+      printf("🚨 Error during insertion\n");
+      return 0;
+
+    } else if (status == BT_DUPLICATE) {
+      int check = 0;
+      for (int j = 0; j < i; j++) {
+        check |= *(int *)(*items)[j] == *item;
+        if (check) {
+          break;
+        }
+      }
+
+      if (!check) {
+        printf("🚨 Error during insertion: duplicate status was returned "
+               "when it shouldn't have. Item that tried to be inserted: %d\n",
+               *item);
+        return 0;
+      }
+      free(item);
+    } else {
+      if (*(int *)node->value != *item) {
         printf(
-            "Tried to insert value %d yet node with value %d was returned.\n",
-            *item, *((int *)node->value));
+            "🚨 Error during insertion: inserted incorrect value in node\n.");
+        return 0;
       }
-      return false;
+      (*items)[i] = item;
+      i++;
     }
   }
-  return true;
+  return 1;
 }
 
-bool testRemove(BinaryTree_t *tree, void **items, int size) {
-  for (int i = 0; i < size / 2; i++) {
-    void *value = btRemove(tree, items[i]);
-    if (value == NULL || *((int *)value) != *((int *)items[i])) {
-      if (value == NULL) {
-        printf("Tried to remove value %d (which should be in the tree) yet "
-               "NULL was returned.\n",
-               *((int *)items[i]));
-      } else {
-        printf("Value removed (%d) is not the one expected (%d).\n",
-               *((int *)value), *((int *)items[i]));
-      }
-      return false;
+int testFind(BinaryTree_t *tree, int size, int **items) {
+  for (int i = 0; i < size; i++) {
+    BTNode_t *node;
+    int status = btFind(tree, items[i], &node);
+    if (status == BT_NOT_FOUND) {
+      printf("🚨 Error in find: %d item should be in tree but was not found.\n",
+             *items[i]);
+      return 0;
+    } else if (*(int *)node->value != *items[i]) {
+      printf("🚨 Error in find: node value returned is not correct.\n");
+      return 0;
     }
-    free(value);
   }
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 1; i <= 20; i++) {
     int *item = malloc(sizeof(int));
-    *item = randInt(-99, 99);
-    BTNode_t *node = btInsert(tree, (void *)item);
-    void *value = btRemove(tree, (void *)item);
-    if (value == NULL || *((int *)value) != *((int *)item)) {
-      if (value == NULL) {
-        printf("Tried to remove value %d (which should be in the tree) yet "
-               "NULL was returned.\n",
-               *((int *)item));
-      } else {
-        printf("Value removed (%d) is not the one expected (%d).\n",
-               *((int *)value), *((int *)item));
-      }
-      return false;
+    *item = max + i;
+    BTNode_t *node = NULL;
+    int status = btFind(tree, item, &node);
+    if (status == BT_OK) {
+      printf("🚨 Error in find: this value should not have been found %d.\n",
+             *item);
+      return 0;
+    } else if (node != NULL) {
+      printf("🚨 Error in find: node should be NULL.\n");
+      return 0;
     }
-    free(value);
+    free(item);
   }
-  return true;
+  return 1;
 }
 
-bool testDestroy(BinaryTree_t *tree) {
-  btDestroy(tree);
-  return true;
-}
+int testRemove(BinaryTree_t *tree, int size, int **items, int removeALL) {
+  for (int i = 0; i < size - 5 * (1 - removeALL); i++) {
+    int status = btRemove(tree, items[i]);
 
-bool testDestroyAll(BinaryTree_t *tree) {
-  btDestroyAll(tree);
-  return true;
+    if (status == BT_NOT_FOUND) {
+      printf("🚨 Error in remove: item should have been found but wasn't.\n");
+      return 0;
+    }
+
+    status = btRemove(tree, items[i]);
+    if (status == BT_OK) {
+      printf("🚨 Error in remove: item should have not been found after "
+             "removal.\n");
+      return 0;
+    }
+
+    free(items[i]);
+  }
+  return 1;
 }
 
 void testBinaryTree() {
@@ -183,64 +175,50 @@ void testBinaryTree() {
   btDestroy(tree);
 
   for (int i = 1; i <= numTests; i++) {
-    void **items;
     int size = i * 10;
-    BinaryTree_t *tree = createTree(size, &items);
+    int **items = malloc(sizeof(int *) * size);
+    BinaryTree_t *tree = createTree();
     if (tree == NULL) {
       printf("🚨 Error creating tree\n");
       return;
     }
+    if (!testInsert(tree, size, &items)) {
+      printf("🚨 Error during insert\n");
+      return;
+    }
 
     if (i < 2) {
-      printTree(tree, repr, 4);
+      printTree(tree, repr, 7);
     }
 
-    if (i % 3 == 0) {
-      if (!testBSTProperty(tree)) {
-        printf("🚨 Failed BST Property!\n");
-        return;
-      }
-      if (!testFind(tree, items, size)) {
-        printf("🚨 Failed Find Test!\n");
-        return;
-      }
-      if (!testBSTProperty(tree)) {
-        printf("🚨 Failed BST Property after insert!\n");
-        return;
-      }
-      testDestroy(tree);
-      for (int j = 0; j < size; j++) {
-        free(items[j]);
-      }
+    if (!testBSTProperty(tree)) {
+      printf("🚨 Error, BST property not satisfied\n");
+      return;
+    }
+    if (!testFind(tree, size, items)) {
+      printf("🚨 Error, BST property not satisfied\n");
+      return;
+    }
 
+    if (i % 2 == 0) {
+      if (!testRemove(tree, size, items, 0)) {
+        printf("🚨 Error in remove\n");
+        return;
+      }
+      if (!testBSTProperty(tree)) {
+        printf("🚨 Error, BST property not satisfied\n");
+        return;
+      }
+      btDestroyAll(tree);
+      free(items);
     } else {
-      if (!testBSTProperty(tree)) {
-        printf("🚨 Failed BST Property!\n");
+      if (!testRemove(tree, size, items, 1)) {
+        printf("🚨 Error in remove\n");
         return;
       }
-      if (!testFind(tree, items, size)) {
-        printf("🚨 Failed Find Test!\n");
-        return;
-      }
-      if (!testInsert(tree)) {
-        printf("🚨 Failed Insert Test!\n");
-        return;
-      }
-      if (!testBSTProperty(tree)) {
-        printf("🚨 Failed BST Property after insert!\n");
-        return;
-      }
-      if (!testRemove(tree, items, size)) {
-        printf("🚨 Failed Remove Test!\n");
-        return;
-      }
-      if (!testBSTProperty(tree)) {
-        printf("🚨 Failed BST Property after removal!\n");
-        return;
-      }
-      testDestroyAll(tree);
+      btDestroy(tree);
+      free(items);
     }
-    free(items);
   }
   printf("✅ All tests passed!\n");
 }

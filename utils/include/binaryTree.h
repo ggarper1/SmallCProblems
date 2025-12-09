@@ -4,6 +4,8 @@
 #ifndef BINARYTREE_H
 #define BINARYTREE_H
 
+typedef enum { BT_NOT_FOUND, BT_DUPLICATE, BT_ERROR, BT_OK } BT_STATUS;
+
 typedef struct BTNode {
   void *value;
   struct BTNode *right;
@@ -31,27 +33,29 @@ BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
  * Checks if a element is in the Binary Tree.
  * @param tree The binary Tree.
  * @param item Pointer to the item.
- * @return The node containing the element if it's in the tree, NULL otherwise.
+ * @param node Pointer to the resulting node.
+ * @return The result of the operation
  */
-BTNode_t *btFind(BinaryTree_t *tree, void *item);
+BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node);
 
 /**
  * Inserts a item in the Binary Tree.
  * Pointers to the item are stored (caller manages memory).
  * @param tree The Binary Tree.
  * @param item The item to insert.
- * @return NULL on failure or a pointe to the new node.
+ * @param node The resulting node, if the node already was
+ * in the tree it will return the node.
+ * @return the result of the operation.
  */
-BTNode_t *btInsert(BinaryTree_t *tree, void *item);
+BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node);
 
 /**
  * Removes a item pair from the Binary Tree.
  * @param tree The Binary Tree.
  * @param item The item to remove.
- * @return NULL if the element was not found or the pointer to the value if it
- * was found.
+ * @return the result of the operation.
  */
-void *btRemove(BinaryTree_t *tree, const void *value);
+int btRemove(BinaryTree_t *tree, void *value);
 
 /**
  * Destroys the Binary Tree and frees all allocated memory.

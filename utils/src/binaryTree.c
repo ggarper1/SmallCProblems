@@ -11,6 +11,13 @@
     _a < _b ? _a : _b;                                                         \
   })
 
+#define max(a, b)                                                              \
+  ({                                                                           \
+    __typeof__(a) _a = (a);                                                    \
+    __typeof__(b) _b = (b);                                                    \
+    _a > _b ? _a : _b;                                                         \
+  })
+
 BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
                                                 const void *item2)) {
   BinaryTree_t *tree = malloc(sizeof(BinaryTree_t));
@@ -18,7 +25,6 @@ BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
     return NULL;
   }
 
-  tree->height = -1;
   tree->length = 0;
   tree->compare_func = compare_func;
   tree->root = NULL;
@@ -26,136 +32,126 @@ BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
   return tree;
 }
 
-BTNode_t *btFind(BinaryTree_t *tree, void *item) {
+BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node) {
   BTNode_t *current = tree->root;
 
+  int comparison;
   while (current != NULL) {
-    int comparison = tree->compare_func(item, current->value);
+    comparison = tree->compare_func(item, current->value);
     if (comparison < 0) {
       current = current->left;
     } else if (comparison > 0) {
       current = current->right;
     } else {
-      return current;
+      *node = current;
+      return BT_OK;
     }
   }
-  return NULL;
+  return BT_NOT_FOUND;
 }
 
-BTNode_t *btInsert(BinaryTree_t *tree, void *item) {
+BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node) {
   BTNode_t *newNode = malloc(sizeof(BTNode_t));
   if (newNode == NULL) {
-    return NULL;
+    return BT_ERROR;
   }
 
   newNode->value = item;
   newNode->right = NULL;
   newNode->left = NULL;
 
-  tree->length++;
   if (tree->root == NULL) {
+    tree->length = 1;
     tree->root = newNode;
-    tree->height = 0;
-    return newNode;
+    *node = newNode;
+    return BT_OK;
   }
 
-  int depth = 1;
   BTNode_t *current = tree->root;
-  while (true) {
-    int comparison = tree->compare_func(item, current->value);
-
+  BTNode_t *prev = NULL;
+  int comparison;
+  while (current != NULL) {
+    comparison = tree->compare_func(item, current->value);
     if (comparison < 0) {
-      if (current->left == NULL) {
-        current->left = newNode;
-        if (depth > tree->height) {
-          tree->height = depth;
-        }
-        return newNode;
-      } else {
-        current = current->left;
-      }
+      prev = current;
+      current = current->left;
+    } else if (comparison > 0) {
+      prev = current;
+      current = current->right;
     } else {
-      if (current->right == NULL) {
-        current->right = newNode;
-        if (depth > tree->height) {
-          tree->height = depth;
-        }
-        return newNode;
-      } else {
-        current = current->right;
-      }
+      *node = current;
+      free(newNode);
+      return BT_DUPLICATE;
     }
-    depth++;
   }
+
+  if (comparison < 0) {
+    prev->left = newNode;
+  } else {
+    prev->right = newNode;
+  }
+  current = newNode;
+  *node = newNode;
+
+  tree->length++;
+  return BT_OK;
 }
 
-void *btRemove(BinaryTree_t *tree, const void *item) {
+int btRemove(BinaryTree_t *tree, void *item) {
+  if (tree->root == NULL) {
+    return BT_NOT_FOUND;
+  }
+
   BTNode_t *current = tree->root;
-  BTNode_t **prev = NULL;
+  BTNode_t **prev = &tree->root;
 
-  while (true) {
-    int comparison = tree->compare_func(item, current->value);
-
+  int comparison = tree->compare_func(item, current->value);
+  while (comparison != 0) {
     if (comparison < 0) {
-      if (current->left == NULL) {
-        return NULL;
-      }
       prev = &current->left;
       current = current->left;
     } else if (comparison > 0) {
-      if (current->right == NULL) {
-        return NULL;
-      }
       prev = &current->right;
       current = current->right;
-    } else {
-      break;
     }
+    if (current == NULL) {
+      return BT_NOT_FOUND;
+    }
+    comparison = tree->compare_func(item, current->value);
   }
 
   tree->length--;
 
   if (current->left == NULL && current->right == NULL) {
-    void *ptr = current->value;
     *prev = NULL;
     free(current);
-    return ptr;
   } else if (current->right == NULL) {
-    void *ptr = current->value;
     BTNode_t *toDelete = current->left;
     current->value = toDelete->value;
     current->left = toDelete->left;
     current->right = toDelete->right;
 
     free(toDelete);
-    return ptr;
   } else if (current->left == NULL) {
-    void *ptr = current->value;
     BTNode_t *toDelete = current->right;
     current->value = toDelete->value;
     current->left = toDelete->left;
     current->right = toDelete->right;
 
     free(toDelete);
-    return ptr;
   } else {
     BTNode_t *toDelete = current->right;
-    BTNode_t **prev = &(current->right);
+    prev = &(current->right);
     while (toDelete->left != NULL) {
       prev = &(toDelete->left);
       toDelete = toDelete->left;
     }
-    if (toDelete->right != NULL) {
-      *prev = toDelete->right;
-    } else {
-      *prev = NULL;
-    }
-    void *ptr = current->value;
+    *prev = toDelete->right;
     current->value = toDelete->value;
 
     free(toDelete);
-    return ptr;
   }
+  return BT_OK;
 }
 
 void btDestroy(BinaryTree_t *tree) {
@@ -164,7 +160,7 @@ void btDestroy(BinaryTree_t *tree) {
     return;
   }
 
-  BTNode_t **nodes = malloc(sizeof(BTNode_t *) * (tree->height + 1));
+  BTNode_t **nodes = malloc(sizeof(BTNode_t *) * (tree->length));
   nodes[0] = tree->root;
   int i = 0;
 
@@ -195,7 +191,7 @@ void btDestroyAll(BinaryTree_t *tree) {
     return;
   }
 
-  BTNode_t **nodes = malloc(sizeof(BTNode_t *) * (tree->height + 1));
+  BTNode_t **nodes = malloc(sizeof(BTNode_t *) * (tree->length));
   nodes[0] = tree->root;
 
   int i = 0;
@@ -223,20 +219,67 @@ void btDestroyAll(BinaryTree_t *tree) {
   free(tree);
 }
 
+int getTreeHeight(BinaryTree_t *tree) {
+  if (tree->root == NULL) {
+    return -1;
+  }
+
+  BTNode_t **nodes = malloc(tree->length * sizeof(BTNode_t *));
+  int *heights = malloc(tree->length * sizeof(int));
+
+  int maxHeight = -1;
+
+  int i = 0, j = 0;
+  int ctr = 0;
+  nodes[i] = tree->root;
+  heights[i] = 0;
+  int height;
+  BTNode_t *node;
+  while (i > -1) {
+    node = nodes[i];
+    height = heights[i];
+
+    int lNull = node->left == NULL, rNull = node->right == NULL;
+    if (lNull && rNull) {
+      i--;
+      j = i;
+      maxHeight = max(height, maxHeight);
+    } else {
+      if (!rNull) {
+        heights[j] = height + 1;
+        nodes[j] = node->right;
+        j++;
+      }
+      if (!lNull) {
+        heights[j] = height + 1;
+        nodes[j] = node->left;
+      } else {
+        j--;
+      }
+      i = j;
+    }
+  }
+
+  free(nodes);
+  free(heights);
+  return maxHeight;
+}
+
 void printTree(BinaryTree_t *tree,
                void (*repr)(BTNode_t *node, char *buffer, int bufferSize),
                int bufferSize) {
-
   if (tree->root == NULL) {
     printf("Empty tree\n");
     return;
   }
-  if (tree->height > 6) {
+  if (tree->length > 12) {
     printf("Tree too big to print\n");
     return;
   }
 
-  BTNode_t **nodes = calloc(pow(2, tree->height + 1) - 1, sizeof(BTNode_t *));
+  int treeHeight = getTreeHeight(tree);
+
+  BTNode_t **nodes = calloc(pow(2, treeHeight + 1) - 1, sizeof(BTNode_t *));
   nodes[0] = tree->root;
 
   int i = 0, j = 1, ctr = 1;
@@ -259,7 +302,7 @@ void printTree(BinaryTree_t *tree,
   }
 
   char *buffer = malloc(sizeof(char) * bufferSize);
-  int maxSpace = pow(2, tree->height) * bufferSize;
+  int maxSpace = pow(2, treeHeight) * bufferSize;
   int start = 0, end = 1;
   int depth = 1;
   int nSep = maxSpace / 2, cSep = maxSpace / 4;
