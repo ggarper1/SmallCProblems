@@ -5,6 +5,8 @@
 #ifndef AVLBINARYTREE_H
 #define AVLBINARYTREE_H
 
+typedef enum { AVL_OK, AVL_ERROR, AVL_NOT_FOUND, AVL_DUPLICATE } AVL_STATUS;
+
 typedef struct AVLNode {
   void *value;
   int lHeight;
@@ -44,18 +46,18 @@ AVLNode_t *avlFind(AVLBinaryTree_t *tree, void *item);
  * Pointers to the item are stored (caller manages memory).
  * @param tree The AVL Binary Tree.
  * @param item The item to insert.
- * @return NULL on failure or a pointe to the new node.
+ * @param a pointer referencing to the newly create node.
+ * @return the status of the operation.
  */
-AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *item);
+AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *item, AVLNode_t **node);
 
 /**
  * Removes a item pair from the AVL Binary Tree.
  * @param tree The AVL Binary Tree.
  * @param item The item to remove.
- * @return NULL if the element was not found or the pointer to the value if it
- * was found.
+ * @return the status of the operation.
  */
-void *avlRemove(AVLBinaryTree_t *tree, const void *value);
+AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value);
 
 /**
  * Destroys the AVL Binary Tree and frees all allocated memory.

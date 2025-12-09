@@ -179,10 +179,10 @@ AVLNode_t *avlFind(AVLBinaryTree_t *tree, void *value) {
   return NULL;
 }
 
-AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *value) {
+AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *value, AVLNode_t **node) {
   AVLNode_t *newNode = malloc(sizeof(AVLNode_t));
   if (newNode == NULL) {
-    return NULL;
+    return AVL_ERROR;
   }
 
   newNode->value = value;
@@ -194,7 +194,8 @@ AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *value) {
   tree->length++;
   if (tree->root == NULL) {
     tree->root = newNode;
-    return newNode;
+    *node = newNode;
+    return AVL_OK;
   }
 
   // Forward pass
@@ -229,7 +230,7 @@ AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *value) {
       free(newNode);
       sDestroy(stack);
       bsDestroy(bstack);
-      return NULL;
+      return AVL_DUPLICATE;
     }
   }
 
@@ -237,7 +238,8 @@ AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *value) {
 
   bsDestroy(bstack);
   sDestroy(stack);
-  return newNode;
+  *node = newNode;
+  return AVL_OK;
 }
 
 void debugTree(AVLNode_t *node) {
@@ -268,14 +270,21 @@ void debugTree(AVLNode_t *node) {
   qDestroy(q);
 }
 
-void *avlRemove(AVLBinaryTree_t *tree, const void *value) {
+AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value) {
   if (tree->root == NULL) {
-    return NULL;
+    return AVL_NOT_FOUND;
   }
 
   int height = max(tree->root->rHeight, tree->root->lHeight);
   Stack_t *stack = newStack(height);
+  if (stack == NULL) {
+    return AVL_ERROR;
+  }
   BoolStack_t *bstack = newBoolStack(height);
+  if (bstack == NULL) {
+    sDestroy(stack);
+    return AVL_ERROR;
+  }
 
   AVLNode_t *node = tree->root;
   int comparison = tree->compare_func(value, node->value);
@@ -297,7 +306,7 @@ void *avlRemove(AVLBinaryTree_t *tree, const void *value) {
   if (node == NULL) {
     sDestroy(stack);
     bsDestroy(bstack);
-    return NULL;
+    return AVL_NOT_FOUND;
   }
   void *ret = node->value;
 
@@ -367,9 +376,6 @@ void *avlRemove(AVLBinaryTree_t *tree, const void *value) {
     free(replacement);
   }
 
-  // printf("Stack: ");
-  // printStack(stack, repr3, 5);
-
   while (sLength(stack) > 0) {
     AVLNode_t *node = sPop(stack);
 
@@ -411,7 +417,7 @@ void *avlRemove(AVLBinaryTree_t *tree, const void *value) {
   tree->length--;
   sDestroy(stack);
   bsDestroy(bstack);
-  return ret;
+  return AVL_OK;
 }
 
 void avlDestroy(AVLBinaryTree_t *tree) {

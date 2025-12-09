@@ -21,10 +21,9 @@
     _a > _b ? _a : _b;                                                         \
   })
 
-const int numTests = 200;
-// TODO:
-const int max = 1000; // 100000000;
-const int min = -1000;
+const int numTests = 500;
+const int max = 10000000;
+const int min = 0;
 
 void debugTree1(AVLNode_t *node) {
   Queue_t *q = newQueue(10);
@@ -113,17 +112,31 @@ AVLBinaryTree_t *createTree(int size, void ***items) {
   }
 
   *items = malloc(sizeof(void *) * size);
-  for (int i = 0; i < size; i++) {
+  int i = 0;
+  while (i < size) {
     int *item = malloc(sizeof(int));
     *item = randInt(min, max);
     (*items)[i] = item;
-    AVLNode_t *node = avlInsert(tree, (void *)item);
-    while (node == NULL) {
+    AVLNode_t *node;
+    AVL_STATUS status = avlInsert(tree, (void *)item, &node);
+    if (status == AVL_DUPLICATE) {
+      int check = 0;
+      for (int j = 0; j < i; j++) {
+        check |= *item == *(int *)(*items)[j];
+        if (check) {
+          break;
+        }
+      }
       free(item);
-      item = malloc(sizeof(int));
-      *item = randInt(min, max);
-      (*items)[i] = item;
-      node = avlInsert(tree, (void *)item);
+    } else if (status == AVL_ERROR) {
+      printf("🚨 Error during insertion\n");
+      return 0;
+    } else {
+      if (*(int *)node->value != *item) {
+        printf("🚨 Node returned in insertion is incorrect\n");
+        return 0;
+      }
+      i++;
     }
   }
 
@@ -236,12 +249,22 @@ bool testBalance(AVLBinaryTree_t *tree) {
 }
 
 bool testInsert(AVLBinaryTree_t *tree, int size) {
-  for (int i = 0; i < 50; i++) {
+  int i = 0;
+  while (i < 50) {
     int *item = malloc(sizeof(int));
     *item = randInt(min, max);
-    AVLNode_t *node = avlInsert(tree, (void *)item);
-    if (node == NULL) {
+    AVLNode_t *node;
+    AVL_STATUS status = avlInsert(tree, (void *)item, &node);
+    if (status == AVL_ERROR) {
+      printf("🚨 Error during insertion\n");
+      return 0;
+    } else if (status == AVL_DUPLICATE) {
       free(item);
+    } else {
+      if (*item != *(int *)node->value) {
+        printf("🚨 Error in insertion\n");
+      }
+      i++;
     }
   }
   return true;
@@ -296,23 +319,31 @@ bool testBalanceValues(AVLBinaryTree_t *tree) {
 
 bool testRemove(AVLBinaryTree_t *tree, void **items, int size) {
   for (int i = 0; i < size * 99 / 100; i++) {
-    void *value = avlRemove(tree, items[i]);
-    // testBalanceValues(tree);
-    // testBalance(tree);
-    // debugTree1(tree->root);
-    // avlPrintTree(tree, repr, 5);
-    if (value == NULL || *((int *)value) != *((int *)items[i])) {
-      if (value == NULL) {
-        printf("Tried to remove value %d (which should be in the tree) yet "
-               "NULL was returned.\n",
-               *((int *)items[i]));
-      } else {
-        printf("Value removed (%d) is not the one expected (%d).\n",
-               *((int *)value), *((int *)items[i]));
-      }
-      return false;
+    AVL_STATUS status = avlRemove(tree, items[i]);
+    if (status == AVL_ERROR) {
+      printf("🚨 Error during removal\n");
+      return 0;
+    } else if (status == AVL_NOT_FOUND) {
+      printf("🚨 Item should have been found during remval\n");
+      return 0;
+    } else {
+      free(items[i]);
     }
-    free(value);
+  }
+
+  for (int i = 1; i <= 10; i++) {
+    int *item = malloc(sizeof(int));
+    *item = max + i;
+    AVL_STATUS status = avlRemove(tree, item);
+    if (status == AVL_ERROR) {
+      printf("🚨 Error during removal\n");
+      return 0;
+    } else if (AVL_OK) {
+      printf("🚨 Removed item that shouldn't be in tree\n");
+      return 0;
+    } else {
+      free(item);
+    }
   }
 
   return true;
@@ -345,7 +376,7 @@ void testBinaryTree() {
     }
 
     if (i < 8) {
-      avlPrintTree(tree, repr, 5);
+      avlPrintTree(tree, repr, 9);
     }
 
     if (0) {
@@ -403,12 +434,12 @@ void testBinaryTree() {
         return;
       }
       if (!testBalanceValues(tree)) {
-        avlPrintTree(tree, repr, 5);
+        avlPrintTree(tree, repr, 9);
         printf("🚨 Failed Balance values after insert!\n");
         return;
       }
       if (!testBalance(tree)) {
-        avlPrintTree(tree, repr, 5);
+        avlPrintTree(tree, repr, 9);
         printf("🚨 Unbalanced tree (after removal)!\n");
         return;
       }
