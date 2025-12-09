@@ -12,17 +12,21 @@ typedef struct Queue {
 } Queue_t;
 
 // --- Private Functions ---
-void reallocateQueue(Queue_t *queue) {
+Q_STATUS reallocateQueue(Queue_t *queue) {
   int length = qLength(queue);
   if (length > queue->capacity / 2) {
     queue->capacity *= 2;
   }
   void **temp = malloc(queue->capacity * sizeof(void *));
+  if (temp == NULL) {
+    return Q_ERROR;
+  }
   memcpy(temp, &queue->values[queue->start], length * sizeof(void *));
   free(queue->values);
   queue->values = temp;
   queue->start = 0;
   queue->end = queue->start + length - 1;
+  return Q_OK;
 }
 
 // --- Public Function ---
@@ -55,12 +59,15 @@ void *qPeek(Queue_t *queue) {
   return NULL;
 }
 
-void qAdd(Queue_t *queue, void *value) {
+Q_STATUS qAdd(Queue_t *queue, void *value) {
   if (queue->end + 1 == queue->capacity) {
-    reallocateQueue(queue);
+    if (reallocateQueue(queue) == Q_ERROR) {
+      return Q_ERROR;
+    }
   }
   queue->end++;
   queue->values[queue->end] = value;
+  return Q_OK;
 }
 
 void *qRemove(Queue_t *queue) {

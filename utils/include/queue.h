@@ -3,6 +3,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+typedef enum { Q_OK, Q_ERROR } Q_STATUS;
+
 typedef struct Queue Queue_t;
 
 // --- Public Function Prototypes ---
@@ -34,7 +36,7 @@ void *qPeek(Queue_t *queue);
  * @param queue The Queue.
  * @param value The value to add.
  */
-void qAdd(Queue_t *queue, void *value);
+Q_STATUS qAdd(Queue_t *queue, void *value);
 
 /**
  * Removes the front element of a Queue.

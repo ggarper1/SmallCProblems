@@ -1,82 +1,91 @@
 #include "../include/queue.h"
 #include "../include/random.h"
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-const int numTests = 3;
+const int numTests = 1000;
 
 void repr(void *value, char *buffer, int bufferSize) {
   snprintf(buffer, bufferSize, "%d", *((int *)value));
 }
 
-bool testPeekAddRemoveDestroyAll(Queue_t *queue, int size) {
+int testPeekAddRemoveDestroyAll(Queue_t *queue, int size) {
   int **items = malloc(size * sizeof(int *));
 
   for (int i = 0; i < size; i++) {
     if (qLength(queue) != i) {
       printf("🚨 Incorrect length\n");
-      return false;
+      return 0;
     }
     int *item = malloc(sizeof(int));
     *item = randInt(0, 99);
     items[i] = item;
-    qAdd(queue, item);
+    if (qAdd(queue, item) == Q_ERROR) {
+      printf("🚨 Error when adding.\n");
+      return 0;
+    }
   }
 
   for (int i = 0; i < size; i++) {
     if (qLength(queue) != size - i) {
       printf("🚨 Incorrect length\n");
-      return false;
+      return 0;
     }
     int *peeked = qPeek(queue);
     int *removed = qRemove(queue);
     if (*peeked != *items[i]) {
       printf("🚨 Peeked is incorrect");
-      return false;
+      return 0;
     }
     if (*removed != *items[i]) {
       printf("🚨 Peeked is incorrect");
-      return false;
+      return 0;
     }
     free(removed);
   }
 
   if (qLength(queue) != 0) {
     printf("🚨 Length should be 0\n");
-    return false;
+    return 0;
   }
 
   int *peeked = qPeek(queue);
   if (peeked != NULL) {
     printf("🚨 Peeked should be null");
-    return false;
+    return 0;
   }
   int *removed = qRemove(queue);
   if (removed != NULL) {
     printf("🚨 Peeked should be null");
-    return false;
+    return 0;
   }
 
   for (int i = 0; i < size / 10; i++) {
     int *item = malloc(sizeof(int));
     *item = randInt(0, 99);
     items[i] = item;
-    qAdd(queue, item);
+    if (qAdd(queue, item) == Q_ERROR) {
+      printf("🚨 Error when adding.\n");
+      return 0;
+    }
   }
 
   qDestroyAll(queue);
 
   free(items);
-  return true;
+  return 1;
 }
 
-bool testDestroy(Queue_t *queue) {
-  int **items = malloc(sizeof(int) * 50);
+int testDestroy(Queue_t *queue) {
+  int **items = malloc(sizeof(int *) * 50);
   for (int i = 0; i < 50; i++) {
     int *item = malloc(sizeof(int));
     *item = randInt(0, 99);
-    qAdd(queue, item);
+    if (qAdd(queue, item) == Q_ERROR) {
+      printf("🚨 Error when adding.\n");
+      return 0;
+    }
+
     items[i] = item;
   }
 
@@ -85,7 +94,7 @@ bool testDestroy(Queue_t *queue) {
     free(items[i]);
   }
   free(items);
-  return true;
+  return 1;
 }
 
 void testQueue() {
