@@ -3,7 +3,6 @@
 #include "../include/random.h"
 #include "../include/stack.h"
 #include <ranlib.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -143,7 +142,7 @@ AVLBinaryTree_t *createTree(int size, void ***items) {
   return tree;
 }
 
-bool testFind(AVLBinaryTree_t *tree, void **items, int size) {
+int testFind(AVLBinaryTree_t *tree, void **items, int size) {
   for (int i = 0; i < size; i++) {
     AVLNode_t *node = avlFind(tree, items[i]);
     if (node == NULL || *(int *)(node->value) != *(int *)(items[i])) {
@@ -162,18 +161,18 @@ bool testFind(AVLBinaryTree_t *tree, void **items, int size) {
                "for (%d).\n",
                *(int *)node->value, *(int *)items[i]);
       }
-      return false;
+      return 0;
     }
   }
-  return true;
+  return 1;
 }
 
-bool testBSTProperty(AVLBinaryTree_t *tree) {
+int testBSTProperty(AVLBinaryTree_t *tree) {
   int height = max(tree->root->rHeight, tree->root->lHeight);
   AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (height + 1));
   if (nodes == NULL) {
     printf("Could not allocate memory for tree with length %d", height);
-    return false;
+    return 0;
   }
 
   nodes[0] = tree->root;
@@ -187,7 +186,7 @@ bool testBSTProperty(AVLBinaryTree_t *tree) {
       if (!(comparison < 0)) {
         printf("Node %d is smaller than it's left child %d\n",
                *(int *)node->value, *(int *)node->left->value);
-        return false;
+        return 0;
       }
       nodes[i] = node->left;
     }
@@ -200,7 +199,7 @@ bool testBSTProperty(AVLBinaryTree_t *tree) {
         printf("Node %d is bigger than it's right child %d\n",
                *(int *)node->value, *(int *)node->right->value);
 
-        return false;
+        return 0;
       }
       nodes[i] = node->right;
     }
@@ -211,18 +210,18 @@ bool testBSTProperty(AVLBinaryTree_t *tree) {
 
   free(nodes);
 
-  return true;
+  return 1;
 }
 
-bool testBalance(AVLBinaryTree_t *tree) {
+int testBalance(AVLBinaryTree_t *tree) {
   if (tree->root == NULL) {
-    return true;
+    return 1;
   }
   int height = max(tree->root->rHeight, tree->root->lHeight);
   Stack_t *stack = newStack(height * 2 + 1);
   if (stack == NULL) {
     printf("Could not allocate memory for stack");
-    return false;
+    return 0;
   }
 
   sPush(stack, tree->root);
@@ -232,7 +231,7 @@ bool testBalance(AVLBinaryTree_t *tree) {
       printf("🚨 Node %d, with rHeight %d and lHeight %d is unbalanced\n",
              *(int *)node->value, node->rHeight, node->lHeight);
       sDestroy(stack);
-      return false;
+      return 0;
     }
 
     if (node->right != NULL) {
@@ -245,10 +244,10 @@ bool testBalance(AVLBinaryTree_t *tree) {
 
   sDestroy(stack);
 
-  return true;
+  return 1;
 }
 
-bool testInsert(AVLBinaryTree_t *tree, int size) {
+int testInsert(AVLBinaryTree_t *tree, int size) {
   int i = 0;
   while (i < 50) {
     int *item = malloc(sizeof(int));
@@ -267,7 +266,7 @@ bool testInsert(AVLBinaryTree_t *tree, int size) {
       i++;
     }
   }
-  return true;
+  return 1;
 }
 
 int findMaxDepth(AVLNode_t *node, int depth) {
@@ -279,9 +278,9 @@ int findMaxDepth(AVLNode_t *node, int depth) {
   return max(lHeight, rHeight);
 }
 
-bool testBalanceValues(AVLBinaryTree_t *tree) {
+int testBalanceValues(AVLBinaryTree_t *tree) {
   if (tree->root == NULL) {
-    return true;
+    return 1;
   }
   Stack_t *stack = newStack(20);
   sPush(stack, tree->root);
@@ -291,33 +290,33 @@ bool testBalanceValues(AVLBinaryTree_t *tree) {
       printf("🚨 Incorrect balance: node %d should have lHeight %d, instead "
              "has lHeight %d\n",
              *(int *)node->value, findMaxDepth(node->left, 1), node->lHeight);
-      return false;
+      return 0;
     }
     if (node->left == NULL && node->lHeight != 0) {
       printf("🚨 Incorrect balance: node %d should have lHeight %d, instead "
              "has lHeight %d\n",
              *(int *)node->value, 0, node->lHeight);
-      return false;
+      return 0;
     }
 
     if (node->right != NULL && node->rHeight != findMaxDepth(node->right, 1)) {
       printf("🚨 Incorrect balance: node %d should have rHeight %d, instead "
              "has rHeight %d\n",
              *(int *)node->value, findMaxDepth(node->right, 1), node->rHeight);
-      return false;
+      return 0;
     }
     if (node->right == NULL && node->rHeight != 0) {
       printf("🚨 Incorrect balance: node %d should have rHeight %d, instead "
              "has rHeight %d\n",
              *(int *)node->value, 0, node->rHeight);
-      return false;
+      return 0;
     }
   }
   sDestroy(stack);
-  return true;
+  return 1;
 }
 
-bool testRemove(AVLBinaryTree_t *tree, void **items, int size) {
+int testRemove(AVLBinaryTree_t *tree, void **items, int size) {
   for (int i = 0; i < size * 99 / 100; i++) {
     AVL_STATUS status = avlRemove(tree, items[i]);
     if (status == AVL_ERROR) {
@@ -346,17 +345,17 @@ bool testRemove(AVLBinaryTree_t *tree, void **items, int size) {
     }
   }
 
-  return true;
+  return 1;
 }
 
-bool testDestroy(AVLBinaryTree_t *tree) {
+int testDestroy(AVLBinaryTree_t *tree) {
   avlDestroy(tree);
-  return true;
+  return 1;
 }
 
-bool testDestroyAll(AVLBinaryTree_t *tree) {
+int testDestroyAll(AVLBinaryTree_t *tree) {
   avlDestroyAll(tree);
-  return true;
+  return 1;
 }
 
 void testBinaryTree() {
