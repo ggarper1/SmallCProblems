@@ -19,13 +19,7 @@
     __typeof__(a) _a = (a);                                                    \
     _a > 0 ? _a : -_a;                                                         \
   })
-// TODO:remove
-void repr2(AVLNode_t *node, char *buffer, int bufferSize) {
-  snprintf(buffer, bufferSize, "%d", *((int *)node->value));
-}
-void repr3(void *value, char *buffer, int bufferSize) {
-  snprintf(buffer, bufferSize, "%d", *(int *)((AVLNode_t *)value)->value);
-}
+
 // --- Private Function Prototypes ---
 AVLNode_t *leftRotate(AVLNode_t *node) {
   AVLNode_t *x = node;
@@ -119,35 +113,6 @@ AVLNode_t *rotate(AVLNode_t *node, int side1, int side2) {
   }
 }
 
-void backward_pass(AVLBinaryTree_t *tree, Stack_t *stack, BoolStack_t *bstack,
-                   int depth) {
-  int prevBool;
-
-  int length = depth;
-  while (length > 0) {
-    AVLNode_t *node = sPop(stack);
-    int b = bsPop(bstack);
-    if (b && node->rHeight < depth - length + 1) {
-      node->rHeight++;
-    } else if (!b && node->lHeight < depth - length + 1) {
-      node->lHeight++;
-    }
-    if (abs(node->rHeight - node->lHeight) > 1) {
-      AVLNode_t *change = rotate(node, b, prevBool);
-      if (length == 1) {
-        tree->root = change;
-      } else if (bsPop(bstack)) {
-        ((AVLNode_t *)sPop(stack))->right = change;
-      } else {
-        ((AVLNode_t *)sPop(stack))->left = change;
-      }
-      break;
-    }
-    prevBool = b;
-    length--;
-  }
-}
-
 // --- Public Function Prototypes ---
 AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *value1,
                                                       const void *value2)) {
@@ -191,8 +156,8 @@ AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *value, AVLNode_t **node) {
   newNode->lHeight = 0;
   newNode->rHeight = 0;
 
-  tree->length++;
   if (tree->root == NULL) {
+    tree->length++;
     tree->root = newNode;
     *node = newNode;
     return AVL_OK;
@@ -205,28 +170,26 @@ AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *value, AVLNode_t **node) {
 
   int depth = 0;
   AVLNode_t *current = tree->root;
+  int comparison;
   while (1) {
     depth++;
     sPush(stack, current);
-    int comparison = tree->compare_func(value, current->value);
+    comparison = tree->compare_func(value, current->value);
     if (comparison < 0) {
       bsPush(bstack, 0);
       if (current->left == NULL) {
         current->left = newNode;
         break;
-      } else {
-        current = current->left;
       }
+      current = current->left;
     } else if (comparison > 0) {
       bsPush(bstack, 1);
       if (current->right == NULL) {
         current->right = newNode;
         break;
-      } else {
-        current = current->right;
       }
+      current = current->right;
     } else {
-      tree->length--;
       free(newNode);
       sDestroy(stack);
       bsDestroy(bstack);
@@ -234,40 +197,36 @@ AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *value, AVLNode_t **node) {
     }
   }
 
-  backward_pass(tree, stack, bstack, depth);
+  tree->length++;
+  int prevBool;
 
+  int length = depth;
+  while (length > 0) {
+    AVLNode_t *n = sPop(stack);
+    int b = bsPop(bstack);
+    if (b && n->rHeight < depth - length + 1) {
+      n->rHeight++;
+    } else if (!b && n->lHeight < depth - length + 1) {
+      n->lHeight++;
+    }
+    if (abs(n->rHeight - n->lHeight) > 1) {
+      AVLNode_t *change = rotate(n, b, prevBool);
+      if (length == 1) {
+        tree->root = change;
+      } else if (bsPop(bstack)) {
+        ((AVLNode_t *)sPop(stack))->right = change;
+      } else {
+        ((AVLNode_t *)sPop(stack))->left = change;
+      }
+      break;
+    }
+    prevBool = b;
+    length--;
+  }
   bsDestroy(bstack);
   sDestroy(stack);
   *node = newNode;
   return AVL_OK;
-}
-
-void debugTree(AVLNode_t *node) {
-  Queue_t *q = newQueue(10);
-  qAdd(q, node);
-  int ctr = 0;
-  while (qLength(q) > 0) {
-    AVLNode_t *node = qRemove(q);
-    if (node == NULL) {
-      printf("%d: Node NULL.\n", ctr);
-
-    } else {
-      printf("%d: Node %d. rHeight: %d, lHeight: %d\n", ctr,
-             *(int *)node->value, node->rHeight, node->lHeight);
-      if (node->left != NULL) {
-        qAdd(q, node->left);
-      } else {
-        qAdd(q, NULL);
-      }
-      if (node->right != NULL) {
-        qAdd(q, node->right);
-      } else {
-        qAdd(q, NULL);
-      }
-    }
-    ctr++;
-  }
-  qDestroy(q);
 }
 
 AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value) {

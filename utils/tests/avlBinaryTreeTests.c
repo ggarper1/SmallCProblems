@@ -20,7 +20,7 @@
     _a > _b ? _a : _b;                                                         \
   })
 
-const int numTests = 500;
+const int numTests = 600;
 const int max = 10000000;
 const int min = 0;
 
