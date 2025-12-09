@@ -1,6 +1,11 @@
-# 📦 Data Structures
 
-Example usages below.
+## 📂 Table of Contents
+- [Stack (`stack.h`)](#stack-stackh)
+- [BoolStack (`boolStack.h`)](#boolstack-boolstackh)
+- [Queue (`queue.h`)](#queue-queueh)
+- [Linked List (`linkedList.h`)](#linked-list-linkedlisth)
+- [Binary Tree (`binaryTree.h`)](#binary-tree-binarytreeh)
+- [AVL Binary Tree (`avlBinaryTree.h`)](#avl-binary-tree-avlbinarytreeh)
 
 ## Stack (`stack.h`)
 
@@ -58,8 +63,6 @@ typedef struct Stack Stack_t;
   - `repr` - Function to convert values to string representation
   - `bufferSize` - Size of the string buffer
 
----
-
 ## BoolStack (`boolStack.h`)
 
 A specialized stack for boolean values with dynamic capacity. Values are stored as bits.
@@ -104,8 +107,6 @@ typedef struct Stack BoolStack_t;
 **`void printBoolStack(BoolStack_t *stack)`**
 - Prints the stack contents
 - **Parameters**: `stack` - The BoolStack to print
-
----
 
 ## Queue (`queue.h`)
 
@@ -162,8 +163,6 @@ typedef struct Queue Queue_t;
   - `queue` - The Queue to print
   - `repr` - Function to convert values to string representation
   - `bufferSize` - Size of the string buffer
-
----
 
 ## Linked List (`linkedList.h`)
 
@@ -240,14 +239,14 @@ typedef struct LinkedList LinkedList_t;
   - `repr` - Function to convert values to string representation
   - `bufferSize` - Size of the string buffer
 
----
-
 ## Binary Tree (`binaryTree.h`)
 
 A binary search tree implementation that maintains sorted order based on a user-provided comparison function.
 
 ### Type Definitions
 ```c
+typedef enum { BT_NOT_FOUND, BT_DUPLICATE, BT_ERROR, BT_OK } BT_STATUS;
+
 typedef struct BTNode {
   void *value;
   struct BTNode *right;
@@ -269,28 +268,29 @@ typedef struct BinaryTree {
 - **Parameters**: `compare_func` - Function to compare items (should return negative if item1 < item2, 0 if equal, positive if item1 > item2)
 - **Returns**: Pointer to the new BinaryTree, or NULL on failure
 
-**`BTNode_t *btFind(BinaryTree_t *tree, void *item)`**
+**`BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node)`**
 - Searches for an element in the tree
 - **Parameters**: 
   - `tree` - The Binary Tree
   - `item` - Pointer to the item to find
-- **Returns**: Pointer to the node containing the element, or NULL if not found
+  - `node` - Pointer to the resulting node
+- **Returns**: The result of the operation
 
-**`BTNode_t *btInsert(BinaryTree_t *tree, void *item)`**
+**`BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node)`**
 - Inserts an item into the tree
 - **Parameters**: 
   - `tree` - The Binary Tree
   - `item` - Pointer to the item to insert
-- **Returns**: Pointer to the new node, or NULL on failure
+  - `node` - The resulting node, if the node already was in the tree it will return the node
+- **Returns**: The result of the operation
 - **Note**: Caller manages memory for the item
 
-**`void *btRemove(BinaryTree_t *tree, const void *value)`**
+**`int btRemove(BinaryTree_t *tree, void *value)`**
 - Removes an item from the tree
 - **Parameters**: 
   - `tree` - The Binary Tree
   - `value` - Pointer to the value to remove
-- **Returns**: Pointer to the removed value, or NULL if not found
-- **Note**: Caller is responsible for freeing the returned value
+- **Returns**: The result of the operation
 
 **`void btDestroy(BinaryTree_t *tree)`**
 - Frees the tree structure only
@@ -317,6 +317,8 @@ A self-balancing binary search tree that maintains O(log n) height through autom
 
 ### Type Definitions
 ```c
+typedef enum { AVL_OK, AVL_ERROR, AVL_NOT_FOUND, AVL_DUPLICATE } AVL_STATUS;
+
 typedef struct AVLNode {
   void *value;
   int lHeight;
@@ -348,21 +350,21 @@ typedef struct AVLBinaryTree {
   - `item` - Pointer to the item to find
 - **Returns**: Pointer to the node containing the element, or NULL if not found
 
-**`AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *item)`**
+**`AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *item, AVLNode_t **node)`**
 - Inserts an item into the tree with automatic balancing
 - **Parameters**: 
   - `tree` - The AVL Binary Tree
   - `item` - Pointer to the item to insert
-- **Returns**: Pointer to the new node, or NULL on failure
+  - `node` - A pointer referencing to the newly create node
+- **Returns**: The status of the operation
 - **Note**: Caller manages memory for the item
 
-**`void *avlRemove(AVLBinaryTree_t *tree, const void *value)`**
+**`AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value)`**
 - Removes an item from the tree with automatic rebalancing
 - **Parameters**: 
   - `tree` - The AVL Binary Tree
   - `value` - Pointer to the value to remove
-- **Returns**: Pointer to the removed value, or NULL if not found
-- **Note**: Caller is responsible for freeing the returned value
+- **Returns**: The status of the operation
 
 **`void avlDestroy(AVLBinaryTree_t *tree)`**
 - Frees the tree structure only
@@ -382,8 +384,7 @@ typedef struct AVLBinaryTree {
   - `bufferSize` - Size of the string buffer
 
 ---
-
-# 💡 Usage Examples
+## 💡 Usage Examples
 
 ## Stack Example
 ```c
