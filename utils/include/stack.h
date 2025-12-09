@@ -35,6 +35,7 @@ void *sPeek(Stack_t *stack);
  * Pointers to the item are stored (caller manages memory).
  * @param stack The Stack.
  * @param value The value to add.
+ * @return the status of the operation
  */
 S_STATUS sPush(Stack_t *stack, void *value);
 

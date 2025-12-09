@@ -3,6 +3,8 @@
 #ifndef BOOLSTACK_H
 #define BOOLSTACK_H
 
+typedef enum { BS_ERROR, BS_OK } BS_STATUS;
+
 typedef struct Stack BoolStack_t;
 
 // --- Public Function Prototypes ---
@@ -33,8 +35,9 @@ int bsPeek(BoolStack_t *stack);
  * Pointers to the item are stored (caller manages memory).
  * @param stack The Stack.
  * @param value The value to add.
+ * @return the status of the operation
  */
-void bsPush(BoolStack_t *stack, int value);
+BS_STATUS bsPush(BoolStack_t *stack, int value);
 
 /**
  * Removes the front element of a Stack.

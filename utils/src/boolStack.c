@@ -12,15 +12,16 @@ typedef struct Stack {
 } BoolStack_t;
 
 // --- Private Function ---
-void reallocateBoolStack(BoolStack_t *stack) {
+BS_STATUS reallocateBoolStack(BoolStack_t *stack) {
   stack->capacity *= 2;
   unsigned char *temp = malloc(stack->capacity / 8);
   if (temp == NULL) {
-    return;
+    return BS_ERROR;
   }
   memcpy(temp, stack->values, stack->length / 8);
   free(stack->values);
   stack->values = temp;
+  return BS_OK;
 }
 
 // --- Public Function Prototypes ---
@@ -74,9 +75,11 @@ int bsPeek(BoolStack_t *stack) {
   return (((unsigned char)1 << bitIdx) & *(stack->values + byteIdx)) != 0;
 }
 
-void bsPush(BoolStack_t *stack, int value) {
+BS_STATUS bsPush(BoolStack_t *stack, int value) {
   if (stack->length == stack->capacity) {
-    reallocateBoolStack(stack);
+    if (reallocateBoolStack(stack) == BS_ERROR) {
+      return BS_ERROR;
+    }
   }
 
   stack->length++;
@@ -88,6 +91,7 @@ void bsPush(BoolStack_t *stack, int value) {
 
   *(stack->values + byteIdx) &= andMask;
   *(stack->values + byteIdx) |= orMask;
+  return BS_OK;
 }
 
 int bsPop(BoolStack_t *stack) {
