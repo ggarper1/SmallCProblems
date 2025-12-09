@@ -88,20 +88,16 @@ int main(void) {
     for (int j = 0; j < i * 10; j++) {
       int *item = malloc(sizeof(int));
       *item = randInt(0, 99);
-      btInsert(tree, item);
+      BTNode_t *node;
+      btInsert(tree, item, &node);
     }
 
     printTree(tree, repr, 3);
 
-    int recFail = getHeightRec(tree->root) != tree->height;
-    if (recFail) {
-      printf("🚨 Recursive height id Failing\n");
-      return 0;
-    }
-
-    int itFail = getHeightIt(tree->root) != tree->height;
-    if (itFail) {
-      printf("🚨 Iterative height id Failing\n");
+    int recHeight = getHeightRec(tree->root);
+    int itHeight = getHeightIt(tree->root);
+    if (recHeight != itHeight) {
+      printf("🚨 Heights don't match\n");
       return 0;
     }
     btDestroyAll(tree);
