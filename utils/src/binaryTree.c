@@ -32,7 +32,7 @@ BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
   return tree;
 }
 
-BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node) {
+BTNode_t *btFind(BinaryTree_t *tree, void *item) {
   BTNode_t *current = tree->root;
 
   int comparison;
@@ -43,11 +43,10 @@ BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node) {
     } else if (comparison > 0) {
       current = current->right;
     } else {
-      *node = current;
-      return BT_OK;
+      return current;
     }
   }
-  return BT_NOT_FOUND;
+  return NULL;
 }
 
 BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node) {

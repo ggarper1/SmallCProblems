@@ -47,7 +47,7 @@ AVLNode_t *avlFind(AVLBinaryTree_t *tree, void *item);
  * @param tree The AVL Binary Tree.
  * @param item The item to insert.
  * @param a pointer referencing to the newly create node.
- * @return the status of the operation.
+ * @return the status of the operation (AVL_ERROR, AVL_DUPLICATE or AVL_OK).
  */
 AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *item, AVLNode_t **node);
 
@@ -55,7 +55,7 @@ AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *item, AVLNode_t **node);
  * Removes a item pair from the AVL Binary Tree.
  * @param tree The AVL Binary Tree.
  * @param item The item to remove.
- * @return the status of the operation.
+ * @return the status of the operation (AVL_ERROR, AVL_NOT_FOUND or AVL_OK).
  */
 AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value);
 

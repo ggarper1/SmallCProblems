@@ -41,7 +41,7 @@ void *llPeekLast(LinkedList_t *list);
  * Pointers to the item are stored (caller manages memory).
  * @param list The linked list.
  * @param value The value to add.
- * @return the status of the operation.
+ * @return the status of the operation (LL_OK or LL_ERROR).
  */
 LL_STATUS llAddLast(LinkedList_t *list, void *value);
 
@@ -50,7 +50,7 @@ LL_STATUS llAddLast(LinkedList_t *list, void *value);
  * Pointers to the item are stored (caller manages memory).
  * @param list The linked list.
  * @param value The value to add.
- * @return the status of the operation.
+ * @return the status of the operation (LL_OK or LL_ERROR).
  */
 LL_STATUS llAddFirst(LinkedList_t *list, void *value);
 

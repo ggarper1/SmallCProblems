@@ -34,7 +34,7 @@ void *qPeek(Queue_t *queue);
  * Adds a value in a Queue.
  * Pointers to the item are stored (caller manages memory).
  * @param queue The Queue.
- * @param value The value to add.
+ * @param value The value to add (Q_OK or Q_ERROR).
  */
 Q_STATUS qAdd(Queue_t *queue, void *value);
 

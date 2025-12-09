@@ -1,14 +1,15 @@
 # 📦 Data Structures
 
-Example usages below.
+Updated documentation with status codes and return values.
 
 ## Stack (`stack.h`)
 
 A Last-In-First-Out (LIFO) data structure with dynamic capacity.
 
-### Type Definition
+### Type Definitions
 ```c
 typedef struct Stack Stack_t;
+typedef enum { S_ERROR, S_OK } S_STATUS;
 ```
 
 ### Functions
@@ -28,11 +29,12 @@ typedef struct Stack Stack_t;
 - **Parameters**: `stack` - The Stack
 - **Returns**: Pointer to the top element, or NULL if empty
 
-**`void sPush(Stack_t *stack, void *value)`**
+**`S_STATUS sPush(Stack_t *stack, void *value)`**
 - Adds a value to the top of the stack
 - **Parameters**: 
   - `stack` - The Stack
   - `value` - Pointer to the value to add
+- **Returns**: `S_OK` on success, `S_ERROR` on failure (e.g., memory allocation error)
 - **Note**: Caller manages memory for the value
 
 **`void *sPop(Stack_t *stack)`**
@@ -64,9 +66,10 @@ typedef struct Stack Stack_t;
 
 A specialized stack for boolean values with dynamic capacity. Values are stored as bits.
 
-### Type Definition
+### Type Definitions
 ```c
 typedef struct Stack BoolStack_t;
+typedef enum { BS_ERROR, BS_OK } BS_STATUS;
 ```
 
 ### Functions
@@ -86,11 +89,12 @@ typedef struct Stack BoolStack_t;
 - **Parameters**: `stack` - The BoolStack
 - **Returns**: The top element value
 
-**`void bsPush(BoolStack_t *stack, int value)`**
+**`BS_STATUS bsPush(BoolStack_t *stack, int value)`**
 - Adds a value to the top of the stack
 - **Parameters**: 
   - `stack` - The BoolStack
   - `value` - The integer/boolean value to add
+- **Returns**: `BS_OK` on success, `BS_ERROR` on failure (e.g., memory allocation error)
 
 **`int bsPop(BoolStack_t *stack)`**
 - Removes and returns the top element
@@ -111,9 +115,10 @@ typedef struct Stack BoolStack_t;
 
 A First-In-First-Out (FIFO) data structure with dynamic capacity.
 
-### Type Definition
+### Type Definitions
 ```c
 typedef struct Queue Queue_t;
+typedef enum { Q_OK, Q_ERROR } Q_STATUS;
 ```
 
 ### Functions
@@ -133,11 +138,12 @@ typedef struct Queue Queue_t;
 - **Parameters**: `queue` - The Queue
 - **Returns**: Pointer to the front element, or NULL if empty
 
-**`void qAdd(Queue_t *queue, void *value)`**
+**`Q_STATUS qAdd(Queue_t *queue, void *value)`**
 - Adds a value to the back of the queue
 - **Parameters**: 
   - `queue` - The Queue
   - `value` - Pointer to the value to add
+- **Returns**: `Q_OK` on success, `Q_ERROR` on failure (e.g., memory allocation error)
 - **Note**: Caller manages memory for the value
 
 **`void *qRemove(Queue_t *queue)`**
@@ -169,9 +175,10 @@ typedef struct Queue Queue_t;
 
 A doubly-linked list data structure that allows efficient insertion and removal at both ends.
 
-### Type Definition
+### Type Definitions
 ```c
 typedef struct LinkedList LinkedList_t;
+typedef enum { LL_OK, LL_ERROR } LL_STATUS;
 ```
 
 ### Functions
@@ -195,20 +202,20 @@ typedef struct LinkedList LinkedList_t;
 - **Parameters**: `list` - The LinkedList
 - **Returns**: Pointer to the last element, or NULL if empty
 
-**`int llAddFirst(LinkedList_t *list, void *value)`**
+**`LL_STATUS llAddFirst(LinkedList_t *list, void *value)`**
 - Adds a value at the start of the list
 - **Parameters**: 
   - `list` - The LinkedList
   - `value` - Pointer to the value to add
-- **Returns**: Status code
+- **Returns**: `LL_OK` on success, `LL_ERROR` on failure (e.g., memory allocation error)
 - **Note**: Caller manages memory for the value
 
-**`int llAddLast(LinkedList_t *list, void *value)`**
+**`LL_STATUS llAddLast(LinkedList_t *list, void *value)`**
 - Adds a value at the end of the list
 - **Parameters**: 
   - `list` - The LinkedList
   - `value` - Pointer to the value to add
-- **Returns**: Status code
+- **Returns**: `LL_OK` on success, `LL_ERROR` on failure (e.g., memory allocation error)
 - **Note**: Caller manages memory for the value
 
 **`void *llPopFirst(LinkedList_t *list)`**
@@ -248,6 +255,8 @@ A binary search tree implementation that maintains sorted order based on a user-
 
 ### Type Definitions
 ```c
+typedef enum { BT_NOT_FOUND, BT_DUPLICATE, BT_ERROR, BT_OK } BT_STATUS;
+
 typedef struct BTNode {
   void *value;
   struct BTNode *right;
@@ -276,21 +285,24 @@ typedef struct BinaryTree {
   - `item` - Pointer to the item to find
 - **Returns**: Pointer to the node containing the element, or NULL if not found
 
-**`BTNode_t *btInsert(BinaryTree_t *tree, void *item)`**
+**`BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node)`**
 - Inserts an item into the tree
 - **Parameters**: 
   - `tree` - The Binary Tree
   - `item` - Pointer to the item to insert
-- **Returns**: Pointer to the new node, or NULL on failure
+  - `node` - Output parameter: pointer to the new node (or existing node if duplicate)
+- **Returns**: 
+  - `BT_OK` - Item successfully inserted
+  - `BT_DUPLICATE` - Item already exists in tree (node points to existing node)
+  - `BT_ERROR` - Insertion failed (e.g., memory allocation error)
 - **Note**: Caller manages memory for the item
 
-**`void *btRemove(BinaryTree_t *tree, const void *value)`**
+**`int btRemove(BinaryTree_t *tree, void *value)`**
 - Removes an item from the tree
 - **Parameters**: 
   - `tree` - The Binary Tree
   - `value` - Pointer to the value to remove
-- **Returns**: Pointer to the removed value, or NULL if not found
-- **Note**: Caller is responsible for freeing the returned value
+- **Returns**: Status code indicating result of operation
 
 **`void btDestroy(BinaryTree_t *tree)`**
 - Frees the tree structure only
@@ -317,6 +329,8 @@ A self-balancing binary search tree that maintains O(log n) height through autom
 
 ### Type Definitions
 ```c
+typedef enum { AVL_OK, AVL_ERROR, AVL_NOT_FOUND, AVL_DUPLICATE } AVL_STATUS;
+
 typedef struct AVLNode {
   void *value;
   int lHeight;
@@ -348,21 +362,27 @@ typedef struct AVLBinaryTree {
   - `item` - Pointer to the item to find
 - **Returns**: Pointer to the node containing the element, or NULL if not found
 
-**`AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *item)`**
+**`AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *item, AVLNode_t **node)`**
 - Inserts an item into the tree with automatic balancing
 - **Parameters**: 
   - `tree` - The AVL Binary Tree
   - `item` - Pointer to the item to insert
-- **Returns**: Pointer to the new node, or NULL on failure
+  - `node` - Output parameter: pointer to the newly created node (or existing node if duplicate)
+- **Returns**: 
+  - `AVL_OK` - Item successfully inserted
+  - `AVL_DUPLICATE` - Item already exists in tree (node points to existing node)
+  - `AVL_ERROR` - Insertion failed (e.g., memory allocation error)
 - **Note**: Caller manages memory for the item
 
-**`void *avlRemove(AVLBinaryTree_t *tree, const void *value)`**
+**`AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value)`**
 - Removes an item from the tree with automatic rebalancing
 - **Parameters**: 
   - `tree` - The AVL Binary Tree
   - `value` - Pointer to the value to remove
-- **Returns**: Pointer to the removed value, or NULL if not found
-- **Note**: Caller is responsible for freeing the returned value
+- **Returns**: 
+  - `AVL_OK` - Item successfully removed
+  - `AVL_NOT_FOUND` - Item does not exist in tree
+  - `AVL_ERROR` - Removal failed
 
 **`void avlDestroy(AVLBinaryTree_t *tree)`**
 - Frees the tree structure only
@@ -389,6 +409,7 @@ typedef struct AVLBinaryTree {
 ```c
 #include "utils/include/stack.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 // Create a stack for integers
 Stack_t *stack = newStack(10);
@@ -396,12 +417,17 @@ Stack_t *stack = newStack(10);
 // Push values
 int *val = malloc(sizeof(int));
 *val = 42;
-sPush(stack, val);
+S_STATUS status = sPush(stack, val);
+if (status == S_ERROR) {
+    fprintf(stderr, "Failed to push value\n");
+}
 
 // Pop value
 int *retrieved = (int *)sPop(stack);
-printf("Value: %d\n", *retrieved);
-free(retrieved);
+if (retrieved) {
+    printf("Value: %d\n", *retrieved);
+    free(retrieved);
+}
 
 // Clean up
 sDestroy(stack);
@@ -415,9 +441,11 @@ sDestroy(stack);
 BoolStack_t *stack = newBoolStack(10);
 
 // Push values
-bsPush(stack, 1);
-bsPush(stack, 0);
-bsPush(stack, 1);
+BS_STATUS status = bsPush(stack, 1);
+if (status == BS_OK) {
+    bsPush(stack, 0);
+    bsPush(stack, 1);
+}
 
 // Pop value
 int value = bsPop(stack);
@@ -438,11 +466,17 @@ Queue_t *queue = newQueue(10);
 // Add values
 int *val = malloc(sizeof(int));
 *val = 100;
-qAdd(queue, val);
+Q_STATUS status = qAdd(queue, val);
+if (status == Q_ERROR) {
+    fprintf(stderr, "Failed to add value\n");
+    free(val);
+}
 
 // Remove value
 int *retrieved = (int *)qRemove(queue);
-free(retrieved);
+if (retrieved) {
+    free(retrieved);
+}
 
 // Clean up
 qDestroy(queue);
@@ -459,7 +493,11 @@ LinkedList_t *list = newLinkedList();
 // Add values
 int *val1 = malloc(sizeof(int));
 *val1 = 10;
-llAddLast(list, val1);
+LL_STATUS status = llAddLast(list, val1);
+if (status == LL_ERROR) {
+    fprintf(stderr, "Failed to add value\n");
+    free(val1);
+}
 
 int *val2 = malloc(sizeof(int));
 *val2 = 20;
@@ -491,18 +529,23 @@ BinaryTree_t *tree = newBinaryTree(compareInts);
 // Insert values
 int *val = malloc(sizeof(int));
 *val = 50;
-btInsert(tree, val);
-
-// Find value
-BTNode_t *node = btFind(tree, val);
-if (node) {
-    printf("Found: %d\n", *(int *)node->value);
+BTNode_t *node = NULL;
+BT_STATUS status = btInsert(tree, val, &node);
+if (status == BT_OK) {
+    printf("Inserted successfully\n");
+} else if (status == BT_DUPLICATE) {
+    printf("Value already exists\n");
+    free(val);  // Don't insert duplicates
 }
 
-// Remove and clean up
-void *removed = btRemove(tree, val);
-free(removed);
-btDestroy(tree);
+// Find value
+BTNode_t *found = btFind(tree, val);
+if (found) {
+    printf("Found: %d\n", *(int *)found->value);
+}
+
+// Clean up
+btDestroyAll(tree);
 ```
 
 ## AVL Binary Tree Example
@@ -521,23 +564,38 @@ AVLBinaryTree_t *tree = newAVLBinaryTree(compareInts);
 // Insert values (automatically balanced)
 int *val1 = malloc(sizeof(int));
 *val1 = 50;
-avlInsert(tree, val1);
+AVLNode_t *node = NULL;
+AVL_STATUS status = avlInsert(tree, val1, &node);
+if (status == AVL_OK) {
+    printf("Inserted successfully\n");
+} else if (status == AVL_DUPLICATE) {
+    printf("Value already exists\n");
+    free(val1);
+}
 
 int *val2 = malloc(sizeof(int));
 *val2 = 25;
-avlInsert(tree, val2);
+avlInsert(tree, val2, &node);
 
 int *val3 = malloc(sizeof(int));
 *val3 = 75;
-avlInsert(tree, val3);
+avlInsert(tree, val3, &node);
 
 // Find value
-AVLNode_t *node = avlFind(tree, val1);
-if (node) {
-    printf("Found: %d\n", *(int *)node->value);
+AVLNode_t *found = avlFind(tree, val1);
+if (found) {
+    printf("Found: %d\n", *(int *)found->value);
 }
 
-// Remove and clean up
-void *removed = avlRemove(tree, val1);
-free(removed);
+// Remove value
+status = avlRemove(tree, val1);
+if (status == AVL_OK) {
+    printf("Removed successfully\n");
+    free(val1);
+} else if (status == AVL_NOT_FOUND) {
+    printf("Value not found\n");
+}
+
+// Clean up
 avlDestroy(tree);
+```

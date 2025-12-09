@@ -117,14 +117,9 @@ int testInsert(BinaryTree_t *tree, int size, int ***items) {
 
 int testFind(BinaryTree_t *tree, int size, int **items) {
   for (int i = 0; i < size; i++) {
-    BTNode_t *node;
-    int status = btFind(tree, items[i], &node);
-    if (status == BT_NOT_FOUND) {
-      printf("🚨 Error in find: %d item should be in tree but was not found.\n",
-             *items[i]);
-      return 0;
-    } else if (*(int *)node->value != *items[i]) {
-      printf("🚨 Error in find: node value returned is not correct.\n");
+    BTNode_t *node = btFind(tree, items[i]);
+    if (node == NULL || *(int *)node->value != *items[i]) {
+      printf("🚨 Error in find: node has incorrect value.\n");
       return 0;
     }
   }
@@ -132,14 +127,9 @@ int testFind(BinaryTree_t *tree, int size, int **items) {
   for (int i = 1; i <= 20; i++) {
     int *item = malloc(sizeof(int));
     *item = max + i;
-    BTNode_t *node = NULL;
-    int status = btFind(tree, item, &node);
-    if (status == BT_OK) {
-      printf("🚨 Error in find: this value should not have been found %d.\n",
-             *item);
-      return 0;
-    } else if (node != NULL) {
-      printf("🚨 Error in find: node should be NULL.\n");
+    BTNode_t *node = btFind(tree, item);
+    if (node != NULL) {
+      printf("🚨 Error in find: node has incorrect value.\n");
       return 0;
     }
     free(item);

@@ -34,9 +34,9 @@ BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
  * @param tree The binary Tree.
  * @param item Pointer to the item.
  * @param node Pointer to the resulting node.
- * @return The result of the operation
+ * @return The node if it was found, NULL otherwise.
  */
-BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node);
+BTNode_t *btFind(BinaryTree_t *tree, void *item);
 
 /**
  * Inserts a item in the Binary Tree.
@@ -45,7 +45,7 @@ BT_STATUS btFind(BinaryTree_t *tree, void *item, BTNode_t **node);
  * @param item The item to insert.
  * @param node The resulting node, if the node already was
  * in the tree it will return the node.
- * @return the result of the operation.
+ * @return the result of the operation (BT_ERROR, BT_DUPLICATE or BT_OK).
  */
 BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node);
 
@@ -53,7 +53,7 @@ BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node);
  * Removes a item pair from the Binary Tree.
  * @param tree The Binary Tree.
  * @param item The item to remove.
- * @return the result of the operation.
+ * @return the result of the operation (BT_ERROR, BT_NOT_FOUND or BT_OK).
  */
 int btRemove(BinaryTree_t *tree, void *value);
 

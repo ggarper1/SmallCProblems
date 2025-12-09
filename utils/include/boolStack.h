@@ -35,7 +35,7 @@ int bsPeek(BoolStack_t *stack);
  * Pointers to the item are stored (caller manages memory).
  * @param stack The Stack.
  * @param value The value to add.
- * @return the status of the operation
+ * @return the status of the operation (BS_OK or BS_ERROR).
  */
 BS_STATUS bsPush(BoolStack_t *stack, int value);
 
