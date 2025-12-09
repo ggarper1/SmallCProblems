@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// TODO: remove tree->height cause it cannot be computed quickly
 #define max(a, b)                                                              \
   ({                                                                           \
     __typeof__(a) _a = (a);                                                    \
@@ -157,7 +156,6 @@ AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *value1,
     return NULL;
   }
 
-  tree->height = -1;
   tree->length = 0;
   tree->compare_func = compare_func;
   tree->root = NULL;
@@ -196,13 +194,13 @@ AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *value) {
   tree->length++;
   if (tree->root == NULL) {
     tree->root = newNode;
-    tree->height = 0;
     return newNode;
   }
 
   // Forward pass
-  Stack_t *bstack = newBoolStack(tree->height + 1);
-  Stack_t *stack = newStack(tree->height + 1);
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  Stack_t *bstack = newBoolStack(height + 1);
+  Stack_t *stack = newStack(height + 1);
 
   int depth = 0;
   AVLNode_t *current = tree->root;
@@ -233,11 +231,6 @@ AVLNode_t *avlInsert(AVLBinaryTree_t *tree, void *value) {
       bsDestroy(bstack);
       return NULL;
     }
-  }
-
-  // Backward pass to uopdate balances and perform rotations
-  if (depth > tree->height) {
-    tree->height = depth;
   }
 
   backward_pass(tree, stack, bstack, depth);
@@ -280,8 +273,9 @@ void *avlRemove(AVLBinaryTree_t *tree, const void *value) {
     return NULL;
   }
 
-  Stack_t *stack = newStack(tree->height);
-  BoolStack_t *bstack = newBoolStack(tree->height);
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  Stack_t *stack = newStack(height);
+  BoolStack_t *bstack = newBoolStack(height);
 
   AVLNode_t *node = tree->root;
   int comparison = tree->compare_func(value, node->value);
@@ -426,7 +420,8 @@ void avlDestroy(AVLBinaryTree_t *tree) {
     return;
   }
 
-  AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (tree->height + 1));
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (height + 1));
   nodes[0] = tree->root;
   int i = 0;
 
@@ -457,7 +452,8 @@ void avlDestroyAll(AVLBinaryTree_t *tree) {
     return;
   }
 
-  AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (tree->height + 1));
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (height + 1));
   nodes[0] = tree->root;
 
   int i = 0;
@@ -492,12 +488,13 @@ void avlPrintTree(AVLBinaryTree_t *tree,
     printf("Empty tree\n");
     return;
   }
-  if (tree->height > 6) {
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  if (height > 6) {
     printf("Tree too big to print\n");
     return;
   }
 
-  AVLNode_t **nodes = calloc(pow(2, tree->height + 1) - 1, sizeof(AVLNode_t *));
+  AVLNode_t **nodes = calloc(pow(2, height + 1) - 1, sizeof(AVLNode_t *));
   nodes[0] = tree->root;
 
   int i = 0, j = 1, ctr = 1;
@@ -520,7 +517,7 @@ void avlPrintTree(AVLBinaryTree_t *tree,
   }
 
   char *buffer = malloc(sizeof(char) * bufferSize);
-  int maxSpace = pow(2, tree->height) * bufferSize;
+  int maxSpace = pow(2, height) * bufferSize;
   int start = 0, end = 1;
   int depth = 1;
   int nSep = maxSpace / 2, cSep = maxSpace / 4;

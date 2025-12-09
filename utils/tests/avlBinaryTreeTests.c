@@ -72,7 +72,8 @@ void repr(AVLNode_t *node, char *buffer, int bufferSize) {
 }
 
 void printTreeBalances(AVLBinaryTree_t *tree) {
-  Stack_t *stack = newStack(tree->height + 1);
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  Stack_t *stack = newStack(height + 1);
   sPush(stack, tree->root);
   while (sLength(stack) > 0) {
     AVLNode_t *node = sPop(stack);
@@ -155,9 +156,10 @@ bool testFind(AVLBinaryTree_t *tree, void **items, int size) {
 }
 
 bool testBSTProperty(AVLBinaryTree_t *tree) {
-  AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (tree->height + 1));
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  AVLNode_t **nodes = malloc(sizeof(AVLNode_t *) * (height + 1));
   if (nodes == NULL) {
-    printf("Could not allocate memory for tree with length %d", tree->height);
+    printf("Could not allocate memory for tree with length %d", height);
     return false;
   }
 
@@ -203,7 +205,8 @@ bool testBalance(AVLBinaryTree_t *tree) {
   if (tree->root == NULL) {
     return true;
   }
-  Stack_t *stack = newStack(tree->height * 2 + 1);
+  int height = max(tree->root->rHeight, tree->root->lHeight);
+  Stack_t *stack = newStack(height * 2 + 1);
   if (stack == NULL) {
     printf("Could not allocate memory for stack");
     return false;

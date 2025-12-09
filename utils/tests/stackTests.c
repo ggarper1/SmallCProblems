@@ -1,32 +1,35 @@
 #include "../include/random.h"
 #include "../include/stack.h"
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 const int numTests = 10000;
 
-bool testPushPeek(Stack_t *stack, int size, int ***items) {
+int testPushPeek(Stack_t *stack, int size, int ***items) {
   *items = malloc(sizeof(int *) * size);
   if (sPeek(stack) != NULL) {
     printf("🚨 Peek should be null when stack is empty.\n");
-    return false;
+    return 0;
   }
   for (int i = 0; i < size; i++) {
     int *item = malloc(sizeof(int));
     *item = randInt(0, 99);
     (*items)[i] = item;
-    sPush(stack, item);
+    int status = sPush(stack, item);
+    if (stack == S_ERROR) {
+      printf("🚨 Error when pushing\n");
+      return 0;
+    }
     int *peeked = sPeek(stack);
     if (*(int *)peeked != *(*items)[i]) {
       printf("🚨 Peek should be %d, instead is %d.\n", *peeked, **items[i]);
-      return false;
+      return 0;
     }
   }
-  return true;
+  return 1;
 }
 
-bool testPopPeek(Stack_t *stack, int **items, int size) {
+int testPopPeek(Stack_t *stack, int **items, int size) {
   for (int i = 1; i <= size; i++) {
     int *peeked = sPeek(stack);
     int *removed = sPop(stack);
@@ -39,10 +42,10 @@ bool testPopPeek(Stack_t *stack, int **items, int size) {
     }
     free(removed);
   }
-  return true;
+  return 1;
 }
 
-bool testDelete(Stack_t *stack) {
+int testDelete(Stack_t *stack) {
   int **items = malloc(sizeof(int *) * 20);
   for (int i = 0; i < 20; i++) {
     int *item = malloc(sizeof(int));
@@ -57,18 +60,18 @@ bool testDelete(Stack_t *stack) {
   }
   free(items);
 
-  return true;
+  return 1;
 }
 
-bool testDeleteAll(Stack_t *stack) {
+int testDeleteAll(Stack_t *stack) {
   sDestroyAll(stack);
-  return true;
+  return 1;
 }
 
 void testStack() {
   for (int i = 0; i < numTests; i++) {
     Stack_t *stack = newStack(2);
-    if (true) {
+    if (1) {
       int **items;
       if (!testPushPeek(stack, i * 10, &items)) {
         printf("🚨 Push test failed\n");

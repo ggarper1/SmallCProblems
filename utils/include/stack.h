@@ -3,6 +3,8 @@
 #ifndef STACK_H
 #define STACK_H
 
+typedef enum { S_ERROR, S_OK } S_STATUS;
+
 typedef struct Stack Stack_t;
 
 // --- Public Function Prototypes ---
@@ -34,7 +36,7 @@ void *sPeek(Stack_t *stack);
  * @param stack The Stack.
  * @param value The value to add.
  */
-void sPush(Stack_t *stack, void *value);
+S_STATUS sPush(Stack_t *stack, void *value);
 
 /**
  * Removes the front element of a Stack.

@@ -11,12 +11,16 @@ typedef struct Stack {
 } Stack_t;
 
 // --- Private Function ---
-void reallocateStack(Stack_t *stack) {
+S_STATUS reallocateStack(Stack_t *stack) {
   stack->capacity *= 2;
   void **temp = malloc(sizeof(void *) * stack->capacity);
+  if (temp == NULL) {
+    return S_ERROR;
+  }
   memcpy(temp, stack->values, sizeof(void *) * (stack->idx + 1));
   free(stack->values);
   stack->values = temp;
+  return S_OK;
 }
 
 // --- Public Function  ---
@@ -47,12 +51,15 @@ void *sPeek(Stack_t *stack) {
   return stack->values[stack->idx];
 }
 
-void sPush(Stack_t *stack, void *value) {
+S_STATUS sPush(Stack_t *stack, void *value) {
   if (stack->idx + 1 == stack->capacity) {
-    reallocateStack(stack);
+    if (reallocateStack(stack) == S_ERROR) {
+      return S_ERROR;
+    }
   }
   stack->idx++;
   stack->values[stack->idx] = value;
+  return S_OK;
 }
 
 void *sPop(Stack_t *stack) {
