@@ -45,10 +45,10 @@ void *llPeekLast(LinkedList_t *list) {
   return list->last->value;
 }
 
-int llAddLast(LinkedList_t *list, void *value) {
+LL_STATUS llAddLast(LinkedList_t *list, void *value) {
   Node_t *node = malloc(sizeof(Node_t));
   if (node == NULL) {
-    return 0;
+    return LL_ERROR;
   }
 
   node->value = value;
@@ -64,13 +64,13 @@ int llAddLast(LinkedList_t *list, void *value) {
     list->last = node;
   }
   list->length++;
-  return 1;
+  return LL_OK;
 }
 
-int llAddFirst(LinkedList_t *list, void *value) {
+LL_STATUS llAddFirst(LinkedList_t *list, void *value) {
   Node_t *node = malloc(sizeof(Node_t));
   if (node == NULL) {
-    return 0;
+    return LL_ERROR;
   }
 
   node->value = value;
@@ -86,7 +86,7 @@ int llAddFirst(LinkedList_t *list, void *value) {
     list->first = node;
   }
   list->length++;
-  return 1;
+  return LL_OK;
 }
 
 void *llPopFirst(LinkedList_t *list) {

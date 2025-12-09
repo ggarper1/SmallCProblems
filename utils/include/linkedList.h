@@ -3,6 +3,8 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 
+typedef enum { LL_OK, LL_ERROR } LL_STATUS;
+
 typedef struct LinkedList LinkedList_t;
 
 // --- Public Function Prototypes ---
@@ -39,16 +41,18 @@ void *llPeekLast(LinkedList_t *list);
  * Pointers to the item are stored (caller manages memory).
  * @param list The linked list.
  * @param value The value to add.
+ * @return the status of the operation.
  */
-int llAddLast(LinkedList_t *list, void *value);
+LL_STATUS llAddLast(LinkedList_t *list, void *value);
 
 /**
  * Adds a value at the start of the linked list.
  * Pointers to the item are stored (caller manages memory).
  * @param list The linked list.
  * @param value The value to add.
+ * @return the status of the operation.
  */
-int llAddFirst(LinkedList_t *list, void *value);
+LL_STATUS llAddFirst(LinkedList_t *list, void *value);
 
 /**
  * Removes the front element of a linked list.

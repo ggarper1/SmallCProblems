@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int numTests = 10;
+const int numTests = 1000;
 const int max = 1000;
 const int min = -1000;
 
@@ -19,13 +19,21 @@ int testLinkedList(int size) {
     *item = randInt(min, max);
     items[i] = item;
     if (i % 2 == 0) {
-      llAddFirst(list, item);
+      LL_STATUS status = llAddFirst(list, item);
+      if (status == LL_ERROR) {
+        printf("🚨 Error during adding\n");
+        return 0;
+      }
       if (llPeekFirst(list) != item) {
         printf("🚨 Either peekFirst or addFirst is not working!\n");
         return 0;
       }
     } else {
-      llAddLast(list, item);
+      LL_STATUS status = llAddLast(list, item);
+      if (status == LL_ERROR) {
+        printf("🚨 Error during adding\n");
+        return 0;
+      }
       if (llPeekLast(list) != item) {
         printf("🚨 Either peekLast or addLast is not working!\n");
         return 0;
