@@ -12,3 +12,6 @@
 
 # Leaks generated files
 *.dSYM
+
+# csv
+*.csv
