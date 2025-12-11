@@ -43,25 +43,6 @@ BoolStack_t *newBoolStack(size_t capacity) {
   return stack;
 }
 
-void printBits(unsigned char n, int j) {
-  // Calculate total bits (usually 32 or 64 depending on architecture)
-  int numBits = 8;
-
-  // Iterate backwards from the highest bit index
-  for (int i = numBits - 1; i >= 0; i--) {
-
-    // Shift 'n' to the right by 'i' positions and check the last bit
-    int bit = (n >> i) & 1;
-
-    printf("%d", bit);
-  }
-  if (j) {
-    printf("\n");
-  } else {
-    printf(" ");
-  }
-}
-
 int bsLength(BoolStack_t *stack) { return stack->length; }
 
 int bsPeek(BoolStack_t *stack) {
@@ -69,8 +50,8 @@ int bsPeek(BoolStack_t *stack) {
     return 0;
   }
 
-  int byteIdx = (stack->length - 1) / 8;
-  int bitIdx = (stack->length - 1) % 8;
+  int byteIdx = (stack->length - 1) >> 3;
+  int bitIdx = (stack->length - 1) & 7;
 
   return (((unsigned char)1 << bitIdx) & *(stack->values + byteIdx)) != 0;
 }
@@ -83,8 +64,8 @@ BS_STATUS bsPush(BoolStack_t *stack, int value) {
   }
 
   stack->length++;
-  int byteIdx = (stack->length - 1) / 8;
-  int bitIdx = (stack->length - 1) % 8;
+  int byteIdx = (stack->length - 1) >> 3;
+  int bitIdx = (stack->length - 1) & 7;
 
   unsigned char andMask = ~((unsigned char)(1) << bitIdx);
   unsigned char orMask = (unsigned char)(value != 0) << bitIdx;
@@ -99,8 +80,8 @@ int bsPop(BoolStack_t *stack) {
     return 0;
   }
 
-  int byteIdx = (stack->length - 1) / 8;
-  int bitIdx = (stack->length - 1) % 8;
+  int byteIdx = (stack->length - 1) >> 3;
+  int bitIdx = (stack->length - 1) & 7;
   stack->length--;
 
   return (((unsigned char)1 << bitIdx) & *(stack->values + byteIdx)) != 0;
