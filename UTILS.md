@@ -323,6 +323,80 @@ typedef struct BinaryTree {
 
 ---
 
+## Hash Table (`hashTable.h`)
+
+A hash table implementation that provides O(1) average-case lookup, insertion, and deletion operations using separate chaining for collision resolution.
+
+### Type Definitions
+```c
+typedef enum { HT_OK, HT_ERROR, HT_NOT_FOUND, HT_DUPLICATE } HT_STATUS;
+typedef struct HashTable HashTable_t;
+```
+
+### Functions
+
+**`HashTable_t *newHashTable(size_t capacity, int (*compare)(const void *key1, const void *key2), unsigned long (*hash)(void *key))`**
+- Creates a new hash table
+- **Parameters**: 
+  - `capacity` - Initial number of items the table can hold
+  - `compare` - Function to compare keys (should return 0 if equal, non-zero otherwise)
+  - `hash` - Function to compute hash values for keys
+- **Returns**: Pointer to the new HashTable, or NULL on failure
+
+**`int htLength(HashTable_t *hashTable)`**
+- Returns the number of key-value pairs currently in the table
+- **Parameters**: `hashTable` - The HashTable
+- **Returns**: Number of items in the table
+
+**`HT_STATUS htGet(HashTable_t *hashTable, void *key, void **value)`**
+- Retrieves the value associated with a key
+- **Parameters**: 
+  - `hashTable` - The HashTable
+  - `key` - Pointer to the key to search for
+  - `value` - Output parameter: pointer where the value will be stored
+- **Returns**: 
+  - `HT_OK` - Key found, value stored in the output parameter
+  - `HT_NOT_FOUND` - Key does not exist in the table
+
+**`HT_STATUS htPut(HashTable_t *hashTable, void *key, void *value)`**
+- Inserts a key-value pair into the table
+- **Parameters**: 
+  - `hashTable` - The HashTable
+  - `key` - Pointer to the key
+  - `value` - Pointer to the value
+- **Returns**: 
+  - `HT_OK` - Key-value pair successfully inserted
+  - `HT_DUPLICATE` - Key already exists (value not modified)
+- **Note**: Caller manages memory for both key and value
+
+**`HT_STATUS htRemove(HashTable_t *hashTable, void *key)`**
+- Removes a key-value pair from the table
+- **Parameters**: 
+  - `hashTable` - The HashTable
+  - `key` - Pointer to the key to remove
+- **Returns**: Status code indicating result of operation
+
+**`void htDestroy(HashTable_t *hashTable)`**
+- Frees the hash table structure only
+- **Parameters**: `hashTable` - The HashTable to destroy
+- **Note**: Does not free stored keys or values
+
+**`void htDestroyAll(HashTable_t *hashTable)`**
+- Frees the hash table structure and all stored keys and values
+- **Parameters**: `hashTable` - The HashTable to destroy
+- **Warning**: After calling this, accessing previously stored elements causes undefined behavior
+
+**`void printHashTable(HashTable_t *hashTable, void (*reprKey)(void *value, char *buffer, int bufferSize), int keyBufferSize, void (*reprValue)(void *value, char *buffer, int bufferSize), int valueBufferSize)`**
+- Prints the hash table contents
+- **Parameters**:
+  - `hashTable` - The HashTable to print
+  - `reprKey` - Function to convert keys to string representation
+  - `keyBufferSize` - Size of the key string buffer
+  - `reprValue` - Function to convert values to string representation
+  - `valueBufferSize` - Size of the value string buffer
+
+---
+
 ## AVL Binary Tree (`avlBinaryTree.h`)
 
 A self-balancing binary search tree that maintains O(log n) height through automatic rotations.
@@ -546,6 +620,69 @@ if (found) {
 
 // Clean up
 btDestroyAll(tree);
+```
+
+## Hash Table Example
+```c
+#include "utils/include/hashTable.h"
+#include <stdlib.h>
+#include <string.h>
+
+// Comparison function for string keys
+int compareStrings(const void *a, const void *b) {
+    return strcmp((const char *)a, (const char *)b);
+}
+
+// Simple hash function for strings
+unsigned long hashString(void *key) {
+    unsigned long hash = 5381;
+    const char *str = (const char *)key;
+    int c;
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; // hash * 33 + c
+    }
+    return hash;
+}
+
+// Create hash table
+HashTable_t *table = newHashTable(10, compareStrings, hashString);
+
+// Insert key-value pairs
+char *key1 = strdup("name");
+char *val1 = strdup("Alice");
+HT_STATUS status = htPut(table, key1, val1);
+if (status == HT_OK) {
+    printf("Inserted successfully\n");
+} else if (status == HT_DUPLICATE) {
+    printf("Key already exists\n");
+    free(key1);
+    free(val1);
+}
+
+char *key2 = strdup("age");
+int *val2 = malloc(sizeof(int));
+*val2 = 30;
+htPut(table, key2, val2);
+
+// Retrieve value
+void *retrieved = NULL;
+status = htGet(table, "name", &retrieved);
+if (status == HT_OK) {
+    printf("Name: %s\n", (char *)retrieved);
+} else if (status == HT_NOT_FOUND) {
+    printf("Key not found\n");
+}
+
+// Remove key-value pair
+status = htRemove(table, "age");
+if (status == HT_OK) {
+    printf("Removed successfully\n");
+    free(key2);
+    free(val2);
+}
+
+// Clean up
+htDestroyAll(table);
 ```
 
 ## AVL Binary Tree Example
