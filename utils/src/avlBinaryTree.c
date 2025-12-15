@@ -234,7 +234,7 @@ AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value) {
     return AVL_NOT_FOUND;
   }
 
-  int height = max(tree->root->rHeight, tree->root->lHeight);
+  int height = max(tree->root->rHeight, tree->root->lHeight) + 1;
   Stack_t *stack = newStack(height);
   if (stack == NULL) {
     return AVL_ERROR;

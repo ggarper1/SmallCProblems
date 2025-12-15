@@ -17,7 +17,6 @@ typedef struct AVLNode {
 
 typedef struct AVLBinaryTree {
   size_t length;
-  int height;
   int capacity;
   AVLNode_t *root;
   int (*compare_func)(const void *item1, const void *item2);
