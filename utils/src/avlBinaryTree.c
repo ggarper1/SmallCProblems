@@ -116,7 +116,7 @@ AVLNode_t *rotate(AVLNode_t *node, int side1, int side2) {
 // --- Public Function Prototypes ---
 AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *value1,
                                                       const void *value2),
-                                  void (*remove)(void *item)) {
+                                  void (*freeItem)(void *item)) {
   AVLBinaryTree_t *tree = malloc(sizeof(AVLBinaryTree_t));
   if (tree == NULL) {
     return NULL;
@@ -125,7 +125,7 @@ AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *value1,
   tree->length = 0;
   tree->compare_func = compare_func;
   tree->root = NULL;
-  tree->remove = remove;
+  tree->freeItem = freeItem;
 
   return tree;
 }
@@ -231,7 +231,8 @@ AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *value, AVLNode_t **node) {
   return AVL_OK;
 }
 
-AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value) {
+AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value,
+                     void **retValue) {
   if (tree->root == NULL) {
     return AVL_NOT_FOUND;
   }
@@ -269,6 +270,8 @@ AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value) {
     bsDestroy(bstack);
     return AVL_NOT_FOUND;
   }
+
+  *retValue = node->value;
 
   int rNull = node->right == NULL;
   int lNull = node->left == NULL;
@@ -577,7 +580,7 @@ void avlDestroyAll(AVLBinaryTree_t *tree) {
   while (i > -1) {
     AVLNode_t *l = nodes[i]->left;
     AVLNode_t *r = nodes[i]->right;
-    tree->remove(nodes[i]->value);
+    tree->freeItem(nodes[i]->value);
     free(nodes[i]);
     if (l != NULL) {
       nodes[i] = l;

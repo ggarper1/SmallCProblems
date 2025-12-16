@@ -20,7 +20,7 @@ typedef struct AVLBinaryTree {
   int capacity;
   AVLNode_t *root;
   int (*compare_func)(const void *item1, const void *item2);
-  void (*remove)(void *item);
+  void (*freeItem)(void *item);
 } AVLBinaryTree_t;
 
 // --- Public Function Prototypes ---
@@ -32,7 +32,7 @@ typedef struct AVLBinaryTree {
  */
 AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *item1,
                                                       const void *item2),
-                                  void (*remove)(void *item));
+                                  void (*freeItem)(void *item));
 
 /**
  * Checks if a element is in the AVL Binary Tree.
@@ -57,18 +57,10 @@ AVL_STATUS avlInsert(AVLBinaryTree_t *tree, void *item, AVLNode_t **node);
  * Removes a item pair from the AVL Binary Tree.
  * @param tree The AVL Binary Tree.
  * @param item The item to remove.
- * @return the status of the operation (AVL_ERROR, AVL_NOT_FOUND or AVL_OK).
+ * @param retValue The pointer where the removed value will be returned.
+ * @return the result of the operation (AVL_OK, AVL_NOT_FOUND or AVL_ERROR)
  */
-AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value);
-
-/**
- * Removes a item pair from the AVL Binary Tree.
- * @param tree The AVL Binary Tree.
- * @param item The item to remove.
- * @param retValue The value of the removed node.
- * @return the status of the operation (AVL_ERROR, AVL_NOT_FOUND or AVL_OK).
- */
-AVL_STATUS avlRemoveValue(AVLBinaryTree_t *tree, const void *value, void **ret);
+AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value, void **retValue);
 
 /**
  * Destroys the AVL Binary Tree and frees all allocated memory.

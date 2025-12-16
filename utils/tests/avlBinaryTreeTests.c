@@ -24,7 +24,7 @@ const int numTests = 600;
 const int max = 10000000;
 const int min = 0;
 
-void removeValue(void *value) { free(value); }
+void freeItem(void *value) { free(value); }
 
 void debugTree1(AVLNode_t *node) {
   Queue_t *q = newQueue(10);
@@ -107,7 +107,7 @@ void printFromNode(AVLNode_t *node) {
 }
 
 AVLBinaryTree_t *createTree(int size, void ***items) {
-  AVLBinaryTree_t *tree = newAVLBinaryTree(&compare, &removeValue);
+  AVLBinaryTree_t *tree = newAVLBinaryTree(&compare, &freeItem);
   if (tree == NULL) {
     return NULL;
   }
@@ -320,12 +320,16 @@ int testBalanceValues(AVLBinaryTree_t *tree) {
 
 int testRemove(AVLBinaryTree_t *tree, void **items, int size) {
   for (int i = 0; i < size * 99 / 100; i++) {
-    AVL_STATUS status = avlRemove(tree, items[i]);
+    int *ret;
+    AVL_STATUS status = avlRemove(tree, items[i], (void **)&ret);
     if (status == AVL_ERROR) {
       printf("🚨 Error during removal\n");
       return 0;
     } else if (status == AVL_NOT_FOUND) {
       printf("🚨 Item should have been found during remval\n");
+      return 0;
+    } else if (ret != items[i]) {
+      printf("🚨 Ret value is not the one expected\n");
       return 0;
     } else {
       free(items[i]);
@@ -335,11 +339,12 @@ int testRemove(AVLBinaryTree_t *tree, void **items, int size) {
   for (int i = 1; i <= 10; i++) {
     int *item = malloc(sizeof(int));
     *item = max + i;
-    AVL_STATUS status = avlRemove(tree, item);
+    int *ret;
+    AVL_STATUS status = avlRemove(tree, item, (void **)&ret);
     if (status == AVL_ERROR) {
       printf("🚨 Error during removal\n");
       return 0;
-    } else if (AVL_OK) {
+    } else if (AVL_OK || ret != NULL) {
       printf("🚨 Removed item that shouldn't be in tree\n");
       return 0;
     } else {
@@ -361,9 +366,9 @@ int testDestroyAll(AVLBinaryTree_t *tree) {
 }
 
 void testBinaryTree() {
-  AVLBinaryTree_t *tree = newAVLBinaryTree(compare, &removeValue);
+  AVLBinaryTree_t *tree = newAVLBinaryTree(compare, &freeItem);
   avlDestroyAll(tree);
-  tree = newAVLBinaryTree(compare, &removeValue);
+  tree = newAVLBinaryTree(compare, &freeItem);
   avlDestroy(tree);
 
   for (int i = 1; i <= numTests; i++) {
