@@ -19,7 +19,8 @@
   })
 
 BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
-                                                const void *item2)) {
+                                                const void *item2),
+                            void (*freeItem)(void *item)) {
   BinaryTree_t *tree = malloc(sizeof(BinaryTree_t));
   if (tree == NULL) {
     return NULL;
@@ -28,6 +29,7 @@ BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
   tree->length = 0;
   tree->compare_func = compare_func;
   tree->root = NULL;
+  tree->freeItem = freeItem;
 
   return tree;
 }
@@ -96,9 +98,9 @@ BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node) {
   return BT_OK;
 }
 
-int btRemove(BinaryTree_t *tree, void *item) {
+void *btRemove(BinaryTree_t *tree, void *item) {
   if (tree->root == NULL) {
-    return BT_NOT_FOUND;
+    return NULL;
   }
 
   BTNode_t *current = tree->root;
@@ -114,13 +116,14 @@ int btRemove(BinaryTree_t *tree, void *item) {
       current = current->right;
     }
     if (current == NULL) {
-      return BT_NOT_FOUND;
+      return NULL;
     }
     comparison = tree->compare_func(item, current->value);
   }
 
   tree->length--;
 
+  void *ptr = current->value;
   if (current->left == NULL && current->right == NULL) {
     *prev = NULL;
     free(current);
@@ -150,7 +153,7 @@ int btRemove(BinaryTree_t *tree, void *item) {
 
     free(toDelete);
   }
-  return BT_OK;
+  return ptr;
 }
 
 void btDestroy(BinaryTree_t *tree) {
@@ -197,7 +200,7 @@ void btDestroyAll(BinaryTree_t *tree) {
   while (i > -1) {
     BTNode_t *l = nodes[i]->left;
     BTNode_t *r = nodes[i]->right;
-    free(nodes[i]->value);
+    tree->freeItem(nodes[i]->value);
     free(nodes[i]);
     if (l != NULL) {
       nodes[i] = l;

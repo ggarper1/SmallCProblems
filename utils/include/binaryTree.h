@@ -17,6 +17,7 @@ typedef struct BinaryTree {
   int height;
   BTNode_t *root;
   int (*compare_func)(const void *item1, const void *item2);
+  void (*freeItem)(void *item);
 } BinaryTree_t;
 
 // --- Public Function Prototypes ---
@@ -27,7 +28,8 @@ typedef struct BinaryTree {
  * @return A pointer to the new BinaryTree, or NULL on failure.
  */
 BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1,
-                                                const void *item2));
+                                                const void *item2),
+                            void (*freeItem)(void *item));
 
 /**
  * Checks if a element is in the Binary Tree.
@@ -53,9 +55,10 @@ BT_STATUS btInsert(BinaryTree_t *tree, void *item, BTNode_t **node);
  * Removes a item pair from the Binary Tree.
  * @param tree The Binary Tree.
  * @param item The item to remove.
- * @return the result of the operation (BT_ERROR, BT_NOT_FOUND or BT_OK).
+ * @return NULL if the item does not exists, a pointer to the removed value
+ * otherwise.
  */
-int btRemove(BinaryTree_t *tree, void *value);
+void *btRemove(BinaryTree_t *tree, void *value);
 
 /**
  * Destroys the Binary Tree and frees all allocated memory.

@@ -24,8 +24,10 @@ void repr(BTNode_t *node, char *buffer, int bufferSize) {
   snprintf(buffer, bufferSize, "%d", *((int *)node->value));
 }
 
+void freeItem(void *item) { free(item); }
+
 BinaryTree_t *createTree() {
-  BinaryTree_t *tree = newBinaryTree(&compare);
+  BinaryTree_t *tree = newBinaryTree(&compare, &freeItem);
 
   if (tree == NULL) {
     return NULL;
@@ -139,15 +141,15 @@ int testFind(BinaryTree_t *tree, int size, int **items) {
 
 int testRemove(BinaryTree_t *tree, int size, int **items, int removeALL) {
   for (int i = 0; i < size - 5 * (1 - removeALL); i++) {
-    int status = btRemove(tree, items[i]);
+    void *val = btRemove(tree, items[i]);
 
-    if (status == BT_NOT_FOUND) {
+    if (val != items[i]) {
       printf("🚨 Error in remove: item should have been found but wasn't.\n");
       return 0;
     }
 
-    status = btRemove(tree, items[i]);
-    if (status == BT_OK) {
+    val = btRemove(tree, items[i]);
+    if (val != NULL) {
       printf("🚨 Error in remove: item should have not been found after "
              "removal.\n");
       return 0;
@@ -159,9 +161,9 @@ int testRemove(BinaryTree_t *tree, int size, int **items, int removeALL) {
 }
 
 void testBinaryTree() {
-  BinaryTree_t *tree = newBinaryTree(compare);
+  BinaryTree_t *tree = newBinaryTree(compare, &freeItem);
   btDestroyAll(tree);
-  tree = newBinaryTree(compare);
+  tree = newBinaryTree(compare, &freeItem);
   btDestroy(tree);
 
   for (int i = 1; i <= numTests; i++) {
