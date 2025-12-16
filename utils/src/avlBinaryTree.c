@@ -115,7 +115,8 @@ AVLNode_t *rotate(AVLNode_t *node, int side1, int side2) {
 
 // --- Public Function Prototypes ---
 AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *value1,
-                                                      const void *value2)) {
+                                                      const void *value2),
+                                  void (*remove)(void *item)) {
   AVLBinaryTree_t *tree = malloc(sizeof(AVLBinaryTree_t));
   if (tree == NULL) {
     return NULL;
@@ -124,6 +125,7 @@ AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *value1,
   tree->length = 0;
   tree->compare_func = compare_func;
   tree->root = NULL;
+  tree->remove = remove;
 
   return tree;
 }
@@ -267,7 +269,157 @@ AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value) {
     bsDestroy(bstack);
     return AVL_NOT_FOUND;
   }
-  void *ret = node->value;
+
+  int rNull = node->right == NULL;
+  int lNull = node->left == NULL;
+  int stackLength = sLength(stack);
+  if (rNull && lNull) {
+    if (stackLength == 0) {
+      tree->root = NULL;
+    } else {
+      AVLNode_t *prev = sPeek(stack);
+      if (bsPeek(bstack)) {
+        prev->right = NULL;
+      } else {
+        prev->left = NULL;
+      }
+    }
+    free(node);
+  } else if (lNull) {
+    AVLNode_t *replacement = node->right;
+    if (stackLength == 0) {
+      tree->root = replacement;
+    } else {
+      AVLNode_t *prev = sPeek(stack);
+      if (bsPeek(bstack)) {
+        prev->right = replacement;
+      } else {
+        prev->left = replacement;
+      }
+    }
+    free(node);
+  } else if (rNull) {
+    AVLNode_t *replacement = node->left;
+    if (stackLength == 0) {
+      tree->root = replacement;
+    } else {
+      AVLNode_t *prev = sPeek(stack);
+      if (bsPeek(bstack)) {
+        prev->right = replacement;
+      } else {
+        prev->left = replacement;
+      }
+    }
+    free(node);
+  } else {
+    sPush(stack, node);
+    AVLNode_t *replacement = node->right;
+    bsPush(bstack, 1);
+    while (replacement->left != NULL) {
+      sPush(stack, replacement);
+      replacement = replacement->left;
+      bsPush(bstack, 0);
+    }
+
+    if (node->right == replacement) {
+      node->value = replacement->value;
+      node->right = replacement->right;
+    } else {
+      node->value = replacement->value;
+      AVLNode_t *prev = sPeek(stack);
+      if (bsPeek(bstack)) {
+        prev->right = replacement->right;
+      } else {
+        prev->left = replacement->right;
+      }
+    }
+    free(replacement);
+  }
+
+  while (sLength(stack) > 0) {
+    AVLNode_t *node = sPop(stack);
+
+    if (bsPop(bstack)) {
+      node->rHeight = node->right == NULL
+                          ? 0
+                          : max(node->right->lHeight, node->right->rHeight) + 1;
+    } else {
+      node->lHeight = node->left == NULL
+                          ? 0
+                          : max(node->left->lHeight, node->left->rHeight) + 1;
+    }
+
+    if (abs(node->rHeight - node->lHeight) > 1) {
+      int side1 = node->rHeight > node->lHeight;
+      int side2;
+      if (side1) {
+        int unbalance = node->right->rHeight - node->right->lHeight;
+        side2 = unbalance == 0 ? side1 : unbalance > 0;
+      } else {
+        int unbalance = node->left->rHeight - node->left->lHeight;
+        side2 = unbalance == 0 ? side1 : unbalance > 0;
+      }
+
+      AVLNode_t *rotated = rotate(node, side1, side2);
+      if (sLength(stack) == 0) {
+        tree->root = rotated;
+      } else {
+        AVLNode_t *prev = sPeek(stack);
+        if (bsPeek(bstack)) {
+          prev->right = rotated;
+        } else {
+          prev->left = rotated;
+        }
+      }
+    }
+  }
+
+  tree->length--;
+  sDestroy(stack);
+  bsDestroy(bstack);
+  return AVL_OK;
+}
+
+AVL_STATUS avlRemoveValue(AVLBinaryTree_t *tree, const void *value,
+                          void **ret) {
+  if (tree->root == NULL) {
+    return AVL_NOT_FOUND;
+  }
+
+  int height = max(tree->root->rHeight, tree->root->lHeight) + 1;
+  Stack_t *stack = newStack(height);
+  if (stack == NULL) {
+    return AVL_ERROR;
+  }
+  BoolStack_t *bstack = newBoolStack(height);
+  if (bstack == NULL) {
+    sDestroy(stack);
+    return AVL_ERROR;
+  }
+
+  AVLNode_t *node = tree->root;
+  int comparison = tree->compare_func(value, node->value);
+  while (comparison != 0) {
+    sPush(stack, node);
+    if (comparison < 0) {
+      bsPush(bstack, 0);
+      node = node->left;
+    } else {
+      bsPush(bstack, 1);
+      node = node->right;
+    }
+    if (node == NULL) {
+      break;
+    }
+    comparison = tree->compare_func(value, node->value);
+  }
+
+  if (node == NULL) {
+    sDestroy(stack);
+    bsDestroy(bstack);
+    return AVL_NOT_FOUND;
+  }
+  *ret = node->value;
 
   int rNull = node->right == NULL;
   int lNull = node->left == NULL;
@@ -425,7 +577,7 @@ void avlDestroyAll(AVLBinaryTree_t *tree) {
   while (i > -1) {
     AVLNode_t *l = nodes[i]->left;
     AVLNode_t *r = nodes[i]->right;
-    free(nodes[i]->value);
+    tree->remove(nodes[i]->value);
     free(nodes[i]);
     if (l != NULL) {
       nodes[i] = l;

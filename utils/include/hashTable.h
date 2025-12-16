@@ -53,12 +53,6 @@ HT_STATUS htPut(HashTable_t *hashTable, void *key, void *value);
 HT_STATUS htRemove(HashTable_t *hashTable, void *key);
 
 /**
- * Destroys the hash table and frees all allocated memory.
- * @param hashTable The hash table to destroy.
- */
-void htDestroy(HashTable_t *hashTable);
-
-/**
  * Destroys the hash table and along with all the keys and values in it.
  * After calling this method, accessing a element that had
  * been stored in the list can lead to erros due to it being

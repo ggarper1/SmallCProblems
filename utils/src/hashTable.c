@@ -61,6 +61,14 @@ HT_STATUS innerPut(HashTable_t *hashTable, Bucket_Item_t *bi) {
   }
 }
 
+void removeBucketItem(void *bi) {
+  Bucket_Item_t *b = (Bucket_Item_t *)bi;
+  free(b->data.pair->key);
+  free(b->data.pair->value);
+  free(b->data.pair);
+  free(b);
+}
+
 HT_STATUS reallocateHashTable(HashTable_t *hashTable) {
   AVLBinaryTree_t **oldBuckets = hashTable->buckets;
   size_t oldCapacity = hashTable->capacity;
@@ -74,7 +82,7 @@ HT_STATUS reallocateHashTable(HashTable_t *hashTable) {
   }
 
   for (int i = 0; i < hashTable->capacity; i++) {
-    hashTable->buckets[i] = newAVLBinaryTree(innerCompare);
+    hashTable->buckets[i] = newAVLBinaryTree(innerCompare, &removeBucketItem);
     if (hashTable->buckets[i] == NULL) {
       for (int j = 0; j < i; j++) {
         free(hashTable->buckets[j]);
@@ -142,7 +150,7 @@ HashTable_t *newHashTable(size_t capacity,
   }
 
   for (int i = 0; i < capacity; i++) {
-    AVLBinaryTree_t *tree = newAVLBinaryTree(innerCompare);
+    AVLBinaryTree_t *tree = newAVLBinaryTree(innerCompare, &removeBucketItem);
     if (tree == NULL) {
       for (int j = 0; j < i; j++) {
         free(hashTable->buckets[j]);
@@ -185,7 +193,7 @@ HT_STATUS htPut(HashTable_t *hashTable, void *key, void *value) {
     return HT_ERROR;
   }
   bi->type = PAIR;
-  bi->data = (Pair_Or_Key_t)pair;
+  bi->data.pair = pair;
   bi->keyCompare = hashTable->keyCompare;
 
   AVLBinaryTree_t *tree = hashTable->buckets[bucketIdx];
@@ -232,23 +240,18 @@ HT_STATUS htRemove(HashTable_t *hashTable, void *key) {
   Bucket_Item_t *bi = &(Bucket_Item_t){.type = KEY, .data = (Pair_Or_Key_t)key};
 
   AVLBinaryTree_t *tree = hashTable->buckets[bucketIdx];
-  AVL_STATUS status = avlRemove(tree, bi);
+  Bucket_Item_t *toRemove;
+  AVL_STATUS status = avlRemoveValue(tree, bi, (void **)&toRemove);
   switch (status) {
   case AVL_OK:
+    free(toRemove->data.pair);
+    free(toRemove);
     return HT_OK;
   case AVL_NOT_FOUND:
     return HT_NOT_FOUND;
   default:
     return HT_ERROR;
   }
-}
-
-void htDestroy(HashTable_t *hashTable) {
-  for (int i = 0; i < hashTable->capacity; i++) {
-    avlDestroy(hashTable->buckets[i]);
-  }
-  free(hashTable->buckets);
-  free(hashTable);
 }
 
 void htDestroyAll(HashTable_t *hashTable) {

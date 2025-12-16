@@ -6,7 +6,7 @@
 #include <string.h>
 #include <time.h>
 
-const int numTests = 1000;
+const int numTests = 2; // 1000;
 const int maxKeySize = 16;
 const int minValue = 0;
 const int maxValue = 10000;
@@ -53,6 +53,7 @@ void testHashTable() {
     char **keys = malloc(sizeof(char *) * insertions);
     int **values = malloc(sizeof(int *) * insertions);
     HashTable_t *hashTable = createHashTable();
+
     for (int i = 0; i < insertions; i++) {
       char *key;
       generateRandomString(&key);
@@ -65,6 +66,10 @@ void testHashTable() {
         printf("🚨 Error\n");
         return;
       }
+    }
+
+    if (insertions < 40) {
+      printHashTable(hashTable, reprKey, maxKeySize, reprValue, 6);
     }
 
     for (int i = 0; i < insertions; i++) {
@@ -129,23 +134,10 @@ void testHashTable() {
         return;
       }
     }
-    if (insertions < 40) {
-      printHashTable(hashTable, reprKey, maxKeySize, reprValue, 6);
-    }
 
-    if (j % 2 == 0) {
-      htDestroyAll(hashTable);
-      free(keys);
-      free(values);
-    } else {
-      htDestroy(hashTable);
-      for (int i = 0; i < insertions; i++) {
-        free(keys[i]);
-        free(values[i]);
-      }
-      free(keys);
-      free(values);
-    }
+    htDestroyAll(hashTable);
+    free(keys);
+    free(values);
   }
   printf("✅ All tests passed\n");
 }

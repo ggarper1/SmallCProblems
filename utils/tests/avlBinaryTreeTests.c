@@ -24,6 +24,8 @@ const int numTests = 600;
 const int max = 10000000;
 const int min = 0;
 
+void removeValue(void *value) { free(value); }
+
 void debugTree1(AVLNode_t *node) {
   Queue_t *q = newQueue(10);
   qAdd(q, node);
@@ -105,7 +107,7 @@ void printFromNode(AVLNode_t *node) {
 }
 
 AVLBinaryTree_t *createTree(int size, void ***items) {
-  AVLBinaryTree_t *tree = newAVLBinaryTree(&compare);
+  AVLBinaryTree_t *tree = newAVLBinaryTree(&compare, &removeValue);
   if (tree == NULL) {
     return NULL;
   }
@@ -359,9 +361,9 @@ int testDestroyAll(AVLBinaryTree_t *tree) {
 }
 
 void testBinaryTree() {
-  AVLBinaryTree_t *tree = newAVLBinaryTree(compare);
+  AVLBinaryTree_t *tree = newAVLBinaryTree(compare, &removeValue);
   avlDestroyAll(tree);
-  tree = newAVLBinaryTree(compare);
+  tree = newAVLBinaryTree(compare, &removeValue);
   avlDestroy(tree);
 
   for (int i = 1; i <= numTests; i++) {
