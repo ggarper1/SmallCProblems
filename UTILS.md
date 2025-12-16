@@ -268,14 +268,17 @@ typedef struct BinaryTree {
   int height;
   BTNode_t *root;
   int (*compare_func)(const void *item1, const void *item2);
+  void (*freeItem)(void *item);
 } BinaryTree_t;
 ```
 
 ### Functions
 
-**`BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1, const void *item2))`**
+**`BinaryTree_t *newBinaryTree(int (*compare_func)(const void *item1, const void *item2), void (*freeItem)(void *item))`**
 - Creates a new Binary Search Tree
-- **Parameters**: `compare_func` - Function to compare items (should return negative if item1 < item2, 0 if equal, positive if item1 > item2)
+- **Parameters**: 
+  - `compare_func` - Function to compare items (should return negative if item1 < item2, 0 if equal, positive if item1 > item2)
+  - `freeItem` - Function to free individual items when using `btDestroyAll()`
 - **Returns**: Pointer to the new BinaryTree, or NULL on failure
 
 **`BTNode_t *btFind(BinaryTree_t *tree, void *item)`**
@@ -297,12 +300,13 @@ typedef struct BinaryTree {
   - `BT_ERROR` - Insertion failed (e.g., memory allocation error)
 - **Note**: Caller manages memory for the item
 
-**`int btRemove(BinaryTree_t *tree, void *value)`**
+**`void *btRemove(BinaryTree_t *tree, void *value)`**
 - Removes an item from the tree
 - **Parameters**: 
   - `tree` - The Binary Tree
   - `value` - Pointer to the value to remove
-- **Returns**: Status code indicating result of operation
+- **Returns**: Pointer to the removed value, or NULL if the item does not exist
+- **Note**: Caller is responsible for freeing the returned value
 
 **`void btDestroy(BinaryTree_t *tree)`**
 - Frees the tree structure only
@@ -310,7 +314,7 @@ typedef struct BinaryTree {
 - **Note**: Does not free stored values
 
 **`void btDestroyAll(BinaryTree_t *tree)`**
-- Frees the tree structure and all stored values
+- Frees the tree structure and all stored values using the `freeItem` function
 - **Parameters**: `tree` - The Binary Tree to destroy
 - **Warning**: After calling this, accessing previously stored elements causes undefined behavior
 
@@ -330,6 +334,12 @@ A hash table implementation that provides O(1) average-case lookup, insertion, a
 ### Type Definitions
 ```c
 typedef enum { HT_OK, HT_ERROR, HT_NOT_FOUND, HT_DUPLICATE } HT_STATUS;
+
+typedef struct Pair {
+  void *key;
+  void *value;
+} Pair_t;
+
 typedef struct HashTable HashTable_t;
 ```
 
@@ -369,22 +379,20 @@ typedef struct HashTable HashTable_t;
   - `HT_DUPLICATE` - Key already exists (value not modified)
 - **Note**: Caller manages memory for both key and value
 
-**`HT_STATUS htRemove(HashTable_t *hashTable, void *key)`**
+**`HT_STATUS htRemove(HashTable_t *hashTable, void *key, void **pair)`**
 - Removes a key-value pair from the table
 - **Parameters**: 
   - `hashTable` - The HashTable
   - `key` - Pointer to the key to remove
+  - `pair` - Output parameter: pointer where the removed Pair_t structure will be returned
 - **Returns**: Status code indicating result of operation
-
-**`void htDestroy(HashTable_t *hashTable)`**
-- Frees the hash table structure only
-- **Parameters**: `hashTable` - The HashTable to destroy
-- **Note**: Does not free stored keys or values
+- **Note**: Caller is responsible for freeing the returned pair and its contents
 
 **`void htDestroyAll(HashTable_t *hashTable)`**
 - Frees the hash table structure and all stored keys and values
 - **Parameters**: `hashTable` - The HashTable to destroy
 - **Warning**: After calling this, accessing previously stored elements causes undefined behavior
+- **Note**: No separate `htDestroy()` function exists - only `htDestroyAll()`
 
 **`void printHashTable(HashTable_t *hashTable, void (*reprKey)(void *value, char *buffer, int bufferSize), int keyBufferSize, void (*reprValue)(void *value, char *buffer, int bufferSize), int valueBufferSize)`**
 - Prints the hash table contents
@@ -415,18 +423,20 @@ typedef struct AVLNode {
 
 typedef struct AVLBinaryTree {
   size_t length;
-  int height;
   int capacity;
   AVLNode_t *root;
   int (*compare_func)(const void *item1, const void *item2);
+  void (*freeItem)(void *item);
 } AVLBinaryTree_t;
 ```
 
 ### Functions
 
-**`AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *item1, const void *item2))`**
+**`AVLBinaryTree_t *newAVLBinaryTree(int (*compare_func)(const void *item1, const void *item2), void (*freeItem)(void *item))`**
 - Creates a new AVL Binary Search Tree
-- **Parameters**: `compare_func` - Function to compare items (should return negative if item1 < item2, 0 if equal, positive if item1 > item2)
+- **Parameters**: 
+  - `compare_func` - Function to compare items (should return negative if item1 < item2, 0 if equal, positive if item1 > item2)
+  - `freeItem` - Function to free individual items when using `avlDestroyAll()`
 - **Returns**: Pointer to the new AVLBinaryTree, or NULL on failure
 
 **`AVLNode_t *avlFind(AVLBinaryTree_t *tree, void *item)`**
@@ -448,15 +458,17 @@ typedef struct AVLBinaryTree {
   - `AVL_ERROR` - Insertion failed (e.g., memory allocation error)
 - **Note**: Caller manages memory for the item
 
-**`AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value)`**
+**`AVL_STATUS avlRemove(AVLBinaryTree_t *tree, const void *value, void **retValue)`**
 - Removes an item from the tree with automatic rebalancing
 - **Parameters**: 
   - `tree` - The AVL Binary Tree
   - `value` - Pointer to the value to remove
+  - `retValue` - Output parameter: pointer where the removed value will be returned
 - **Returns**: 
   - `AVL_OK` - Item successfully removed
   - `AVL_NOT_FOUND` - Item does not exist in tree
   - `AVL_ERROR` - Removal failed
+- **Note**: Caller is responsible for freeing the returned value
 
 **`void avlDestroy(AVLBinaryTree_t *tree)`**
 - Frees the tree structure only
@@ -464,7 +476,7 @@ typedef struct AVLBinaryTree {
 - **Note**: Does not free stored values
 
 **`void avlDestroyAll(AVLBinaryTree_t *tree)`**
-- Frees the tree structure and all stored values
+- Frees the tree structure and all stored values using the `freeItem` function
 - **Parameters**: `tree` - The AVL Binary Tree to destroy
 - **Warning**: After calling this, accessing previously stored elements causes undefined behavior
 
@@ -597,8 +609,13 @@ int compareInts(const void *a, const void *b) {
     return (*(int *)a - *(int *)b);
 }
 
+// Free function for integers
+void freeInt(void *item) {
+    free(item);
+}
+
 // Create tree
-BinaryTree_t *tree = newBinaryTree(compareInts);
+BinaryTree_t *tree = newBinaryTree(compareInts, freeInt);
 
 // Insert values
 int *val = malloc(sizeof(int));
@@ -618,7 +635,14 @@ if (found) {
     printf("Found: %d\n", *(int *)found->value);
 }
 
-// Clean up
+// Remove value
+int *removed = (int *)btRemove(tree, val);
+if (removed) {
+    printf("Removed: %d\n", *removed);
+    free(removed);
+}
+
+// Clean up - automatically frees all remaining values
 btDestroyAll(tree);
 ```
 
@@ -674,14 +698,17 @@ if (status == HT_OK) {
 }
 
 // Remove key-value pair
-status = htRemove(table, "age");
+void *pair = NULL;
+status = htRemove(table, "age", &pair);
 if (status == HT_OK) {
     printf("Removed successfully\n");
-    free(key2);
-    free(val2);
+    Pair_t *p = (Pair_t *)pair;
+    free(p->key);
+    free(p->value);
+    free(p);
 }
 
-// Clean up
+// Clean up - automatically frees all keys and values
 htDestroyAll(table);
 ```
 
@@ -695,8 +722,13 @@ int compareInts(const void *a, const void *b) {
     return (*(int *)a - *(int *)b);
 }
 
+// Free function for integers
+void freeInt(void *item) {
+    free(item);
+}
+
 // Create AVL tree
-AVLBinaryTree_t *tree = newAVLBinaryTree(compareInts);
+AVLBinaryTree_t *tree = newAVLBinaryTree(compareInts, freeInt);
 
 // Insert values (automatically balanced)
 int *val1 = malloc(sizeof(int));
@@ -725,14 +757,15 @@ if (found) {
 }
 
 // Remove value
-status = avlRemove(tree, val1);
+void *retValue = NULL;
+status = avlRemove(tree, val1, &retValue);
 if (status == AVL_OK) {
-    printf("Removed successfully\n");
-    free(val1);
+    printf("Removed: %d\n", *(int *)retValue);
+    free(retValue);
 } else if (status == AVL_NOT_FOUND) {
     printf("Value not found\n");
 }
 
-// Clean up
-avlDestroy(tree);
+// Clean up - automatically frees all remaining values
+avlDestroyAll(tree);
 ```
