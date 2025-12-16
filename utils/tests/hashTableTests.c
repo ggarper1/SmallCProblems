@@ -6,7 +6,7 @@
 #include <string.h>
 #include <time.h>
 
-const int numTests = 2; // 1000;
+const int numTests = 100; // 1000;
 const int maxKeySize = 16;
 const int minValue = 0;
 const int maxValue = 10000;
@@ -102,11 +102,17 @@ void testHashTable() {
       char *key = keys[i];
       int *value = values[i];
 
-      HT_STATUS status = htRemove(hashTable, key);
+      Pair_t *pair;
+      HT_STATUS status = htRemove(hashTable, key, (void **)&pair);
       if (status != HT_OK) {
         printf("🚨 Error:(removals) status is: %d\n", status);
         return;
       }
+      if (pair->key != key || pair->value != value) {
+        printf("🚨 Error:(first removals) pointers to key or value is wrong\n");
+        return;
+      }
+      free(pair);
     }
 
     for (int i = 0; i < insertions - 5; i++) {
@@ -128,11 +134,18 @@ void testHashTable() {
       char *key = keys[i];
       int *value = values[i];
 
-      HT_STATUS status = htRemove(hashTable, key);
+      Pair_t *pair = NULL;
+      HT_STATUS status = htRemove(hashTable, key, (void **)&pair);
       if (status != HT_NOT_FOUND) {
         printf("🚨 Error:(removals) status is: %d\n", status);
         return;
       }
+      if (pair != NULL) {
+        printf("🚨 Error:(removals) pair isn't null\n");
+        return;
+      }
+      free(key);
+      free(value);
     }
 
     htDestroyAll(hashTable);

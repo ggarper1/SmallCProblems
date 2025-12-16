@@ -5,6 +5,11 @@
 
 typedef enum { HT_OK, HT_ERROR, HT_NOT_FOUND, HT_DUPLICATE } HT_STATUS;
 
+typedef struct Pair {
+  void *key;
+  void *value;
+} Pair_t;
+
 typedef struct HashTable HashTable_t;
 
 // --- Public Function Prototypes ---
@@ -48,9 +53,10 @@ HT_STATUS htPut(HashTable_t *hashTable, void *key, void *value);
  * Removes a key value pair from a hash table.
  * @param hashTable The hash table.
  * @param key The key.
+ * @param pair A pointer where the removed key and value will be returned.
  * @return the operation's status.
  */
-HT_STATUS htRemove(HashTable_t *hashTable, void *key);
+HT_STATUS htRemove(HashTable_t *hashTable, void *key, void **pair);
 
 /**
  * Destroys the hash table and along with all the keys and values in it.
