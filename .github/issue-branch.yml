@@ -25,6 +25,12 @@ branches:
     prefix: 'refactor/'
     name: 'main'
     prTarget: 'main'
+
+  - label: new-problem
+    prefix: 'new-problem/'
+    name: 'main'
+    prTarget: 'main'
+
     
   # Fallback para cualquier otro tipo de issue:
   - label: '*'

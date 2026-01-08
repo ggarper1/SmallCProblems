@@ -1,5 +1,5 @@
 name: Refactor
-description: Refactoring code
+description: Refactoring Code
 labels: ["refactor"]
 body:
   - type: textarea
