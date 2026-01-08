@@ -1,0 +1,8 @@
+name: New Problem
+description: New Problem Addtion
+labels: ["new-problem"]
+body:
+  - type: textarea
+    id: desc
+    attributes: { label: Description, placeholder: Problem statement }
+    validations: { required: true }

@@ -1,0 +1,8 @@
+name: Refactor
+description: Refactoring code
+labels: ["refactor"]
+body:
+  - type: textarea
+    id: desc
+    attributes: { label: Description, placeholder: What code is being refactored and why? }
+    validations: { required: true }
