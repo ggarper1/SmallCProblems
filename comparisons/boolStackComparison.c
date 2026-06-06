@@ -1,6 +1,6 @@
-#include "../include/linkedListStack.h"
-#include "../include/random.h"
-#include "../include/stack.h"
+#include "../modules/boolStack/include/boolStack.h"
+#include "../modules/stack/include/stack.h"
+#include "../utils/include/random.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -10,34 +10,35 @@ const int maxDataPoints = 10000;
 void generateDataset(int **data) {
   *data = malloc(sizeof(int) * maxDataPoints);
   for (int i = 0; i < maxDataPoints; i++) {
-    (*data)[i] = randInt(0, 10000);
+    (*data)[i] = randInt(0, 1);
   }
 }
 
-void generatedLLStackData(int *data, clock_t **times) {
+void generatedBoolStackData(int *data, clock_t **times) {
   int numMeasurements = maxDataPoints / 10;
   *times = malloc(sizeof(clock_t) * numMeasurements);
   int timeIndex = 0;
 
   for (int i = 10; i <= maxDataPoints; i += 10) {
     clock_t time = 0;
-    LLStack_t *stack = newLLStack();
+    BoolStack_t *stack = newBoolStack(maxDataPoints);
     clock_t start, end;
-    LLS_STATUS status;
+    BS_STATUS status;
 
     for (int j = 0; j < i; j++) {
+      int value = *(data + j);
       start = clock();
-      status = llsPush(stack, data + j);
+      status = bsPush(stack, value);
       end = clock();
-      if (status == LLS_ERROR) {
+      if (status == BS_ERROR) {
         printf("🚨 Error when pushing to linked list!\n");
-        llsDestroy(stack);
+        bsDestroy(stack);
         return;
       }
       time += end - start;
     }
     (*times)[timeIndex++] = time;
-    llsDestroy(stack);
+    bsDestroy(stack);
   }
 }
 
@@ -48,7 +49,7 @@ void generatedStackData(int *data, clock_t **times) {
 
   for (int i = 10; i <= maxDataPoints; i += 10) {
     clock_t time = 0;
-    Stack_t *stack = newStack(10);
+    Stack_t *stack = newStack(maxDataPoints);
     clock_t start, end;
     S_STATUS status;
 
@@ -68,19 +69,19 @@ void generatedStackData(int *data, clock_t **times) {
   }
 }
 
-void writeData(clock_t *llsTimes, clock_t *sTimes) {
-  FILE *file = fopen("./utils/benchmarks/data/stack1.csv", "w");
+void writeData(clock_t *bsTimes, clock_t *sTimes) {
+  FILE *file = fopen("./utils/benchmarks/data/boolStack.csv", "w");
   if (file == NULL) {
     perror("Error opening file");
     return;
   }
 
-  fprintf(file, "length,linkedListStack,arrayStack\n");
+  fprintf(file, "length,boolStack,arrayStack\n");
   int numMeasurements = maxDataPoints / 10;
 
   for (int i = 0; i < numMeasurements; i++) {
     long index_multiple = (long)(i + 1) * 10;
-    fprintf(file, "%ld,%ld,%ld\n", index_multiple, (long)llsTimes[i],
+    fprintf(file, "%ld,%ld,%ld\n", index_multiple, (long)bsTimes[i],
             (long)sTimes[i]);
   }
 
@@ -92,16 +93,16 @@ void generateData() {
   int *data;
   generateDataset(&data);
 
-  clock_t *llsTimes;
-  generatedLLStackData(data, &llsTimes);
+  clock_t *bsTimes;
+  generatedBoolStackData(data, &bsTimes);
 
   clock_t *sTimes;
   generatedStackData(data, &sTimes);
 
-  writeData(llsTimes, sTimes);
+  writeData(bsTimes, sTimes);
 
   free(data);
-  free(llsTimes);
+  free(bsTimes);
   free(sTimes);
 }
 
