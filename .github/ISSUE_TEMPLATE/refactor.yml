@@ -4,5 +4,8 @@ labels: ["refactor"]
 body:
   - type: textarea
     id: desc
-    attributes: { label: Description, placeholder: What code is being refactored and why? }
-    validations: { required: true }
+    attributes:
+      label: Description
+      placeholder: What code is being refactored and why?
+    validations:
+      required: true
