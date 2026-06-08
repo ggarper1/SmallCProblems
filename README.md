@@ -1,14 +1,14 @@
 # 🎉 SmallCProblems 🎉
 
-This repo contains a series of data structures written from scratch for the purpose of becoming a better programmer and understanding things. Additionally, there are some simple Leetcode-type problems solved in this repo.
+This repo contains a series of data structures written from scratch for the purpose of becoming a better programmer and understanding things. Additionally, there are some simple LeetCode-type problems solved in this repo.
 
-AI has only been used in this project to automate boring tasks such as writing documentation. No agents have been used for the coding part since the purpose of this project is to gain insights about programming, data structures and solving problems.
+AI has only been used in this project to automate boring tasks such as writing documentation. It has also been used to propose refactors and code modifications in order to obtain more readable and prettier code. No agents have been used to implement features since the purpose of this project is to gain insights about programming, data structures and solving problems. The purpose is not productivity.
 
 ## 📦 Data Structures
 
 Updated documentation with status codes and return values.
 
-### Stack (`stack.h`)
+### Stack (`modules/stack/include/stack.h`)
 
 A Last-In-First-Out (LIFO) data structure with dynamic capacity.
 
@@ -19,46 +19,42 @@ A Last-In-First-Out (LIFO) data structure with dynamic capacity.
 - **Parameters**: `capacity` - Initial number of items the stack can hold
 - **Returns**: Pointer to the new Stack, or NULL on failure
 
-**`int sLength(Stack_t *stack)`**
+**`size_t stackSize(Stack_t *stack)`**
 - Returns the number of elements currently in the stack
 - **Parameters**: `stack` - The Stack
 - **Returns**: Number of items in the stack
 
-**`void *sPeek(Stack_t *stack)`**
+**`StackResult stackPeek(Stack_t *stack)`**
 - Retrieves the top element without removing it
 - **Parameters**: `stack` - The Stack
-- **Returns**: Pointer to the top element, or NULL if empty
+- **Returns**: `StackResult` with:
+  - `STACK_OK` and the top element in `value` when successful
+  - `STACK_EMPTY` and `NULL` when the stack is empty
+  - `STACK_ERROR` and `NULL` when `stack` is NULL
 
-**`S_STATUS sPush(Stack_t *stack, void *value)`**
+**`STACK_STATUS stackPush(Stack_t *stack, void *value)`**
 - Adds a value to the top of the stack
 - **Parameters**: 
   - `stack` - The Stack
   - `value` - Pointer to the value to add
-- **Returns**: `S_OK` on success, `S_ERROR` on failure (e.g., memory allocation error)
+- **Returns**: `STACK_OK` on success, `STACK_ERROR` on failure (e.g., NULL stack or memory allocation error)
 - **Note**: Caller manages memory for the value
 
-**`void *sPop(Stack_t *stack)`**
+**`StackResult stackPop(Stack_t *stack)`**
 - Removes and returns the top element
 - **Parameters**: `stack` - The Stack
-- **Returns**: Pointer to the removed value, or NULL if empty
+- **Returns**: `StackResult` with:
+  - `STACK_OK` and the removed element in `value` when successful
+  - `STACK_EMPTY` and `NULL` when the stack is empty
+  - `STACK_ERROR` and `NULL` when `stack` is NULL
 - **Note**: Caller is responsible for freeing the returned value
 
-**`void sDestroy(Stack_t *stack)`**
-- Frees the stack structure only
-- **Parameters**: `stack` - The Stack to destroy
-- **Note**: Does not free stored values
-
-**`void sDestroyAll(Stack_t *stack)`**
-- Frees the stack structure and all stored values
-- **Parameters**: `stack` - The Stack to destroy
-- **Warning**: After calling this, accessing previously stored elements causes undefined behavior
-
-**`void printStack(Stack_t *stack, void (*repr)(void *value, char *buffer, int bufferSize), int bufferSize)`**
-- Prints the stack contents
+**`void stackDestroy(Stack_t *stack, void (*destroyValue)(void *))`**
+- Frees the stack structure and its internal storage
 - **Parameters**:
-  - `stack` - The Stack to print
-  - `repr` - Function to convert values to string representation
-  - `bufferSize` - Size of the string buffer
+  - `stack` - The Stack to destroy
+  - `destroyValue` - Optional callback used to free each stored value; pass NULL to leave stored values untouched
+- **Warning**: After destroying a stack, accessing the stack or values freed by `destroyValue` causes undefined behavior
 
 ---
 
@@ -416,4 +412,3 @@ A self-balancing binary search tree that maintains O(log n) height through autom
   - `tree` - The AVL Binary Tree to print
   - `repr` - Function to convert node values to string representation
   - `bufferSize` - Size of the string buffer
-

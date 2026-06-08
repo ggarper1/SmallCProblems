@@ -1,96 +1,147 @@
-#include "../include/random.h"
 #include "../include/stack.h"
+#include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-const int numTests = 10000;
+const int MAX = -10000000;
+const int MIN = 10000000;
 
-int testPushPeek(Stack_t *stack, int size, int ***items) {
-  *items = malloc(sizeof(int *) * size);
-  if (sPeek(stack) != NULL) {
-    printf("🚨 Peek should be null when stack is empty.\n");
-    return 0;
-  }
-  for (int i = 0; i < size; i++) {
-    int *item = malloc(sizeof(int));
-    *item = randInt(0, 99);
-    (*items)[i] = item;
-    int status = sPush(stack, item);
-    if (stack == S_ERROR) {
-      printf("🚨 Error when pushing\n");
-      return 0;
-    }
-    int *peeked = sPeek(stack);
-    if (*(int *)peeked != *(*items)[i]) {
-      printf("🚨 Peek should be %d, instead is %d.\n", *peeked, **items[i]);
-      return 0;
-    }
-  }
-  return 1;
+int randInt(int min, int max) {
+  int range = max - min + 1;
+  return (rand() % range) + min;
 }
 
-int testPopPeek(Stack_t *stack, int **items, int size) {
-  for (int i = 1; i <= size; i++) {
-    int *peeked = sPeek(stack);
-    int *removed = sPop(stack);
+void checkEmptyStack(Stack_t *stack) {
+  StackResult result = stackPeek(stack);
+  assert(result.status == STACK_EMPTY && result.value == NULL);
 
-    if (*peeked != *items[size - i]) {
-      printf("🚨 Peek should be %d, instead is %d.\n", *items[i], *peeked);
-    }
-    if (*removed != *items[size - i]) {
-      printf("🚨 Peek should be %d, instead is %d.\n", *items[i], *removed);
-    }
-    free(removed);
-  }
-  return 1;
+  result = stackPop(stack);
+  assert(result.status == STACK_EMPTY && result.value == NULL);
+
+  assert(stackSize(stack) == 0);
 }
 
-int testDelete(Stack_t *stack) {
-  int **items = malloc(sizeof(int *) * 20);
-  for (int i = 0; i < 20; i++) {
-    int *item = malloc(sizeof(int));
-    *item = randInt(0, 99);
-    items[i] = item;
-    sPush(stack, item);
+void testBasicStack(int itemCount) {
+
+  Stack_t *stack = newStack(1);
+
+  checkEmptyStack(stack);
+
+  int *values = malloc(sizeof(int) * itemCount);
+  for (int i = 0; i < itemCount; i++) {
+    values[i] = randInt(MIN, MAX);
+
+    STACK_STATUS status = stackPush(stack, &values[i]);
+    assert(status == STACK_OK);
+
+    StackResult result = stackPeek(stack);
+    assert(result.status != STACK_ERROR);
+    assert((result.status == STACK_EMPTY && result.value == NULL && i == 0) ||
+           (result.status == STACK_OK && *(int *)result.value == values[i]));
+
+    assert(stackSize(stack) == i + 1);
   }
 
-  sDestroy(stack);
-  for (int i = 0; i < 20; i++) {
-    free(items[i]);
+  for (int i = itemCount - 1; i >= 0; i--) {
+    StackResult result = stackPeek(stack);
+    assert(result.status != STACK_ERROR);
+    assert((result.status == STACK_EMPTY && result.value == NULL && i == 0) ||
+           (result.status == STACK_OK && *(int *)result.value == values[i]));
+
+    result = stackPop(stack);
+    assert(result.status != STACK_ERROR);
+    assert((result.status == STACK_EMPTY && result.value == NULL && i == 0) ||
+           (result.status == STACK_OK && *(int *)result.value == values[i]));
+
+    assert(stackSize(stack) == i);
   }
-  free(items);
 
-  return 1;
+  checkEmptyStack(stack);
+
+  stackDestroy(stack, NULL);
+
+  free(values);
 }
 
-int testDeleteAll(Stack_t *stack) {
-  sDestroyAll(stack);
-  return 1;
+void testNulls() {
+  Stack_t *stack = newStack(1);
+  assert(stackPush(stack, NULL) == STACK_OK);
+
+  assert(stackSize(stack) == 1);
+
+  StackResult result = stackPeek(stack);
+  assert(result.status == STACK_OK && result.value == NULL);
+
+  result = stackPop(stack);
+  assert(result.status == STACK_OK && result.value == NULL);
+
+  result = stackPeek(stack);
+  assert(result.status == STACK_EMPTY && result.value == NULL);
+
+  assert(stackSize(stack) == 0);
+
+  stackDestroy(stack, NULL);
 }
 
-void testStack() {
-  for (int i = 0; i < numTests; i++) {
-    Stack_t *stack = newStack(2);
-    if (1) {
-      int **items;
-      if (!testPushPeek(stack, i * 10, &items)) {
-        printf("🚨 Push test failed\n");
-        return;
-      }
-      if (!testPopPeek(stack, items, i * 10)) {
-        printf("🚨 Pop test failed\n");
-        return;
-      }
-      testDeleteAll(stack);
-      free(items);
+void testRandomPushPops() {
+  Stack_t *stack = newStack(5);
+
+  int *values = malloc(sizeof(int) * 100000);
+
+  int size = 0;
+  while (size < 5) {
+    values[size] = randInt(MIN, MAX);
+    assert(stackPush(stack, &values[size]) == STACK_OK);
+    size++;
+  }
+
+  for (int i = 0; i < 100000; i++) {
+    assert(stackSize(stack) == size);
+
+    StackResult result = stackPeek(stack);
+
+    assert((size > 0 && result.status == STACK_OK &&
+            (int *)result.value == &values[size - 1]) ||
+           (result.status == STACK_EMPTY && result.value == NULL));
+
+    if (size == 0 || randInt(0, 1)) {
+      values[size] = randInt(MIN, MAX);
+      assert(stackPush(stack, &values[size]) == STACK_OK);
+      size++;
     } else {
-      testDelete(stack);
+      result = stackPop(stack);
+      assert((result.status == STACK_OK &&
+              *(int *)result.value == values[size - 1] && size > 0) ||
+             (result.status == STACK_EMPTY && result.value == NULL));
+      size--;
     }
   }
-  printf("✅ All tests passed!\n");
+
+  stackDestroy(stack, NULL);
+  free(values);
+}
+
+void freeValue(void *value) { free(value); }
+
+void testDestroyWithFunction() {
+  Stack_t *stack = newStack(5);
+  int *v = malloc(sizeof(int));
+  stackPush(stack, v);
+
+  stackDestroy(stack, freeValue);
 }
 
 int main(int argc, char *argv[]) {
-  testStack();
+  testNulls();
+  testDestroyWithFunction();
+  testRandomPushPops();
+
+  int baseItemCount = 100;
+  for (int factor = 0; factor < 1000; factor++) {
+    testBasicStack(baseItemCount * factor);
+  }
+
+  printf("✅ All tests passed!\n");
   return 0;
 }
