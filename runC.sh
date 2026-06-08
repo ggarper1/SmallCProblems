@@ -1,13 +1,6 @@
 #!/bin/bash
-# --- C Compilation and Execution Helper ---
-#
-# This script automates the compilation and linking process of C programs
-# using utilities in the 'utils/' directory.
-#
-# USAGE: ./run_c.sh <main_c_file>
-# EXAMPLE: ./run_c.sh closestSubsetSum.c
 
-# Parse and check agrs
+# Parse and check args
 EXECUTABLE_NAME="a.out"
 USE_LEAKS=0
 while [[ $# -gt 0 ]]; do
@@ -26,8 +19,8 @@ done
 if [ -z "$MAIN_FILE" ]; then
   echo "Error: Please provide the name of the main C file to execute."
   echo "Usage: $0 [-l|--leaks] <main_c_file>"
-  echo "Example: $0 closestSubsetSum.c"
-  echo "Example: $0 -l closestSubsetSum.c"
+  echo "Example: $0 my/c/program.c"
+  echo "Example: $0 -l my/c/program.c"
   exit 1
 fi
 if [ ! -f "$MAIN_FILE" ]; then
@@ -35,17 +28,24 @@ if [ ! -f "$MAIN_FILE" ]; then
   exit 1
 fi
 
-# Define the utility source files.
-UTILITY_FILES="utils/src/*.c"
-INCLUDE_PATH="-Iutils/include"
+# Collect all .c files under modules/**/src/
+UTILITY_FILES=$(find modules -path "*/src/*.c" 2>/dev/null)
+
+# Build -I flags for every modules/**/include/ directory
+INCLUDE_FLAGS=$(find modules -type d -name "include" | sed 's/^/-I/' | tr '\n' ' ')
+
+if [ -z "$UTILITY_FILES" ]; then
+  echo "Warning: No utility source files found under modules/"
+fi
 
 echo "-> Compiling $MAIN_FILE with utilities..."
+
 # Compiling and linking
 gcc "$MAIN_FILE" \
   $UTILITY_FILES \
-  $INCLUDE_PATH \
+  $INCLUDE_FLAGS \
   -o "$EXECUTABLE_NAME"
-# Check the exit status of the compilation command
+
 if [ $? -eq 0 ]; then
   echo "-> Compilation successful!"
   if [ "$USE_LEAKS" = "1" ]; then
@@ -53,8 +53,6 @@ if [ $? -eq 0 ]; then
   fi
   echo "-> Running program..."
   echo "----------------------------------------"
-  # --- EXECUTION ---
-  # Run the newly created executable
   if [ "$USE_LEAKS" = "1" ]; then
     leaks --atExit -- ./"$EXECUTABLE_NAME"
   else
@@ -63,10 +61,6 @@ if [ $? -eq 0 ]; then
   EXEC_STATUS=$?
   echo "----------------------------------------"
   echo "-> Program finished with exit status $EXEC_STATUS."
-  # --- CLEANUP (Optional but recommended) ---
-  # Uncomment the line below if you want the script to remove the executable
-  # after it runs.
-  # rm -f "$EXECUTABLE_NAME"
 else
   echo "-> Compilation FAILED."
   exit 1
