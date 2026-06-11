@@ -155,75 +155,78 @@ A First-In-First-Out (FIFO) data structure with dynamic capacity.
 
 ---
 
-### Linked List (`linkedList.h`)
+### Linked List (`modules/linked_list/include/linked_list.h`)
 
-A doubly-linked list data structure that allows efficient insertion and removal at both ends.
+A doubly-linked list data structure with efficient insertion and removal at both ends.
+
+#### Types
+
+**`LINKED_LIST_STATUS`**
+- `LINKED_LIST_OK` when an operation succeeds
+- `LINKED_LIST_EMPTY` when peeking or popping from an empty list
+- `LINKED_LIST_ERROR` when an operation fails, such as memory allocation failure
+
+**`linked_list_result_t`**
+- Result type returned by peek and pop operations
+- Contains:
+  - `status` — one of the `LINKED_LIST_STATUS` values above
+  - `value` — the stored pointer when the operation succeeds, or `NULL` otherwise
 
 #### Functions
 
-**`LinkedList_t *newLinkedList()`**
+**`linked_list_t *new_linked_list()`**
 - Creates a new linked list
-- **Returns**: Pointer to the new LinkedList, or NULL on failure
+- **Returns**: Pointer to the new list, or `NULL` on failure
 
-**`int llLength(LinkedList_t *list)`**
+**`size_t linked_list_size(linked_list_t *list)`**
 - Returns the number of elements currently in the list
-- **Parameters**: `list` - The LinkedList
+- **Parameters**: `list` - The linked list
 - **Returns**: Number of items in the list
 
-**`void *llPeekFirst(LinkedList_t *list)`**
+**`linked_list_result_t linked_list_peek_first(linked_list_t *list)`**
 - Retrieves the first element without removing it
-- **Parameters**: `list` - The LinkedList
-- **Returns**: Pointer to the first element, or NULL if empty
+- **Parameters**: `list` - The linked list
+- **Returns**: `LINKED_LIST_OK` with the first value, `LINKED_LIST_EMPTY` if the list is empty
 
-**`void *llPeekLast(LinkedList_t *list)`**
+**`linked_list_result_t linked_list_peek_last(linked_list_t *list)`**
 - Retrieves the last element without removing it
-- **Parameters**: `list` - The LinkedList
-- **Returns**: Pointer to the last element, or NULL if empty
+- **Parameters**: `list` - The linked list
+- **Returns**: `LINKED_LIST_OK` with the last value, `LINKED_LIST_EMPTY` if the list is empty
 
-**`LL_STATUS llAddFirst(LinkedList_t *list, void *value)`**
+**`LINKED_LIST_STATUS linked_list_add_first(linked_list_t *list, void *value)`**
 - Adds a value at the start of the list
-- **Parameters**: 
-  - `list` - The LinkedList
-  - `value` - Pointer to the value to add
-- **Returns**: `LL_OK` on success, `LL_ERROR` on failure (e.g., memory allocation error)
-- **Note**: Caller manages memory for the value
-
-**`LL_STATUS llAddLast(LinkedList_t *list, void *value)`**
-- Adds a value at the end of the list
-- **Parameters**: 
-  - `list` - The LinkedList
-  - `value` - Pointer to the value to add
-- **Returns**: `LL_OK` on success, `LL_ERROR` on failure (e.g., memory allocation error)
-- **Note**: Caller manages memory for the value
-
-**`void *llPopFirst(LinkedList_t *list)`**
-- Removes and returns the first element
-- **Parameters**: `list` - The LinkedList
-- **Returns**: Pointer to the removed value, or NULL if empty
-- **Note**: Caller is responsible for freeing the returned value
-
-**`void *llPopLast(LinkedList_t *list)`**
-- Removes and returns the last element
-- **Parameters**: `list` - The LinkedList
-- **Returns**: Pointer to the removed value, or NULL if empty
-- **Note**: Caller is responsible for freeing the returned value
-
-**`void llDestroy(LinkedList_t *list)`**
-- Frees the list structure only
-- **Parameters**: `list` - The LinkedList to destroy
-- **Note**: Does not free stored values
-
-**`void llDestroyAll(LinkedList_t *list)`**
-- Frees the list structure and all stored values
-- **Parameters**: `list` - The LinkedList to destroy
-- **Warning**: After calling this, accessing previously stored elements causes undefined behavior
-
-**`void printLinkedList(LinkedList_t *list, void (*repr)(void *value, char *buffer, int bufferSize), int bufferSize)`**
-- Prints the linked list contents
 - **Parameters**:
-  - `list` - The LinkedList to print
-  - `repr` - Function to convert values to string representation
-  - `bufferSize` - Size of the string buffer
+  - `list` - The linked list
+  - `value` - Pointer to the value to add
+- **Returns**: `LINKED_LIST_OK` on success, `LINKED_LIST_ERROR` on failure
+- **Note**: The list stores the pointer as-is; the caller manages the pointed-to memory
+
+**`LINKED_LIST_STATUS linked_list_add_last(linked_list_t *list, void *value)`**
+- Adds a value at the end of the list
+- **Parameters**:
+  - `list` - The linked list
+  - `value` - Pointer to the value to add
+- **Returns**: `LINKED_LIST_OK` on success, `LINKED_LIST_ERROR` on failure
+- **Note**: The list stores the pointer as-is; the caller manages the pointed-to memory
+
+**`linked_list_result_t linked_list_pop_first(linked_list_t *list)`**
+- Removes and returns the first element
+- **Parameters**: `list` - The linked list
+- **Returns**: `LINKED_LIST_OK` with the removed value, `LINKED_LIST_EMPTY` if the list is empty
+- **Note**: The caller is responsible for freeing the returned value when needed
+
+**`linked_list_result_t linked_list_pop_last(linked_list_t *list)`**
+- Removes and returns the last element
+- **Parameters**: `list` - The linked list
+- **Returns**: `LINKED_LIST_OK` with the removed value, `LINKED_LIST_EMPTY` if the list is empty
+- **Note**: The caller is responsible for freeing the returned value when needed
+
+**`void linked_list_destroy(linked_list_t *list, void (*destroy_value)(void *))`**
+- Frees the list structure and its nodes
+- **Parameters**:
+  - `list` - The linked list to destroy
+  - `destroy_value` - Optional callback used to free each stored value; pass `NULL` to leave stored values untouched
+- **Warning**: After destroying a list, accessing it or any values freed by `destroy_value` causes undefined behavior
 
 ---
 
