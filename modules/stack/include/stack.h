@@ -9,31 +9,31 @@ typedef enum { STACK_ERROR, STACK_OK, STACK_EMPTY } STACK_STATUS;
 typedef struct {
   STACK_STATUS status;
   void *value;
-} StackResult;
+} stack_result_t;
 
-typedef struct Stack Stack_t;
+typedef struct Stack my_stack_t;
 
 /**
  * Creates a new Stack.
  * @param capacity: Initial number of items.
  * @return A pointer to the new Stack, or NULL on failure.
  */
-Stack_t *newStack(size_t capacity);
+my_stack_t *newStack(size_t capacity);
 
 /**
  * Returns a Stack's size (number of values in it).
  * @param stack: The Stack.
  * @return the number of items in it.
  */
-size_t stackSize(Stack_t *stack);
+size_t stackSize(my_stack_t *stack);
 
 /**
  * Peeks the front element of a Stack.
  * @param stack: The stack.
- * @return A StackResult struct with pointer to the element, if the stack is not
- * empty.
+ * @return A stack_result_t struct with pointer to the element, if the stack is
+ * not empty.
  */
-StackResult stackPeek(Stack_t *stack);
+stack_result_t stackPeek(my_stack_t *stack);
 
 /**
  * Adds a value in a Stack.
@@ -42,15 +42,15 @@ StackResult stackPeek(Stack_t *stack);
  * @param value: The value to add.
  * @return the status of the operation (S_OK or S_ERROR).
  */
-STACK_STATUS stackPush(Stack_t *stack, void *value);
+STACK_STATUS stackPush(my_stack_t *stack, void *value);
 
 /**
  * Removes the front element of a Stack.
  * @param stack: The Stack.
- * @return A StackResult struct with pointer to the element, if the stack is not
- * empty.
+ * @return A stack_result_t struct with pointer to the element, if the stack is
+ * not empty.
  */
-StackResult stackPop(Stack_t *stack);
+stack_result_t stackPop(my_stack_t *stack);
 
 /**
  * Destroys the Stack and frees all allocated memory.
@@ -58,6 +58,6 @@ StackResult stackPop(Stack_t *stack);
  * @param destroyValue: The function with which ro destroy the values or NULL if
  * values should not be destroyed
  */
-void stackDestroy(Stack_t *stack, void (*destroyValue)(void *));
+void stackDestroy(my_stack_t *stack, void (*destroyValue)(void *));
 
 #endif

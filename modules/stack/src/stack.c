@@ -8,9 +8,9 @@ typedef struct Stack {
   size_t capacity;
   int size;
   void **values;
-} Stack_t;
+} my_stack_t;
 
-static STACK_STATUS reallocateStack(Stack_t *stack) {
+static STACK_STATUS reallocateStack(my_stack_t *stack) {
   size_t newCapacity = stack->capacity * 2;
   void **values = realloc(stack->values, sizeof(void *) * newCapacity);
   if (values == NULL) {
@@ -22,12 +22,12 @@ static STACK_STATUS reallocateStack(Stack_t *stack) {
   return STACK_OK;
 }
 
-Stack_t *newStack(size_t capacity) {
+my_stack_t *newStack(size_t capacity) {
   if (capacity < 1) {
     return NULL;
   }
 
-  Stack_t *stack = malloc(sizeof(Stack_t));
+  my_stack_t *stack = malloc(sizeof(stack_t));
   if (stack == NULL) {
     return NULL;
   }
@@ -44,10 +44,10 @@ Stack_t *newStack(size_t capacity) {
   return stack;
 }
 
-size_t stackSize(Stack_t *stack) { return stack->size + 1; }
+size_t stackSize(my_stack_t *stack) { return stack->size + 1; }
 
-StackResult stackPeek(Stack_t *stack) {
-  StackResult result;
+stack_result_t stackPeek(my_stack_t *stack) {
+  stack_result_t result;
   if (stack == NULL) {
     result.status = STACK_ERROR;
     result.value = NULL;
@@ -65,7 +65,7 @@ StackResult stackPeek(Stack_t *stack) {
   return result;
 }
 
-STACK_STATUS stackPush(Stack_t *stack, void *value) {
+STACK_STATUS stackPush(my_stack_t *stack, void *value) {
   if (stack == NULL) {
     return STACK_ERROR;
   }
@@ -81,8 +81,8 @@ STACK_STATUS stackPush(Stack_t *stack, void *value) {
   return STACK_OK;
 }
 
-StackResult stackPop(Stack_t *stack) {
-  StackResult result;
+stack_result_t stackPop(my_stack_t *stack) {
+  stack_result_t result;
   if (stack == NULL) {
     result.status = STACK_ERROR;
     result.value = NULL;
@@ -101,7 +101,7 @@ StackResult stackPop(Stack_t *stack) {
   return result;
 }
 
-void stackDestroy(Stack_t *stack, void (*destroyValue)(void *)) {
+void stackDestroy(my_stack_t *stack, void (*destroyValue)(void *)) {
   if (stack == NULL) {
     return;
   }
