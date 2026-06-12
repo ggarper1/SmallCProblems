@@ -11,21 +11,21 @@ typedef struct {
   void *value;
 } stack_result_t;
 
-typedef struct Stack my_stack_t;
+typedef struct stack my_stack_t;
 
 /**
  * Creates a new Stack.
  * @param capacity: Initial number of items.
  * @return A pointer to the new Stack, or NULL on failure.
  */
-my_stack_t *newStack(size_t capacity);
+my_stack_t *new_stack(size_t capacity);
 
 /**
  * Returns a Stack's size (number of values in it).
  * @param stack: The Stack.
  * @return the number of items in it.
  */
-size_t stackSize(my_stack_t *stack);
+size_t stack_size(my_stack_t *stack);
 
 /**
  * Peeks the front element of a Stack.
@@ -33,7 +33,7 @@ size_t stackSize(my_stack_t *stack);
  * @return A stack_result_t struct with pointer to the element, if the stack is
  * not empty.
  */
-stack_result_t stackPeek(my_stack_t *stack);
+stack_result_t stack_peek(my_stack_t *stack);
 
 /**
  * Adds a value in a Stack.
@@ -42,7 +42,7 @@ stack_result_t stackPeek(my_stack_t *stack);
  * @param value: The value to add.
  * @return the status of the operation (S_OK or S_ERROR).
  */
-STACK_STATUS stackPush(my_stack_t *stack, void *value);
+STACK_STATUS stack_push(my_stack_t *stack, void *value);
 
 /**
  * Removes the front element of a Stack.
@@ -50,7 +50,7 @@ STACK_STATUS stackPush(my_stack_t *stack, void *value);
  * @return A stack_result_t struct with pointer to the element, if the stack is
  * not empty.
  */
-stack_result_t stackPop(my_stack_t *stack);
+stack_result_t stack_pop(my_stack_t *stack);
 
 /**
  * Destroys the Stack and frees all allocated memory.
@@ -58,6 +58,6 @@ stack_result_t stackPop(my_stack_t *stack);
  * @param destroyValue: The function with which ro destroy the values or NULL if
  * values should not be destroyed
  */
-void stackDestroy(my_stack_t *stack, void (*destroyValue)(void *));
+void stack_destroy(my_stack_t *stack, void (*destroy_value)(void *));
 
 #endif

@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Stack {
+typedef struct stack {
   size_t capacity;
   int size;
   void **values;
 } my_stack_t;
 
-static STACK_STATUS reallocateStack(my_stack_t *stack) {
+static STACK_STATUS reallocate_stack(my_stack_t *stack) {
   size_t newCapacity = stack->capacity * 2;
   void **values = realloc(stack->values, sizeof(void *) * newCapacity);
   if (values == NULL) {
@@ -22,7 +22,7 @@ static STACK_STATUS reallocateStack(my_stack_t *stack) {
   return STACK_OK;
 }
 
-my_stack_t *newStack(size_t capacity) {
+my_stack_t *new_stack(size_t capacity) {
   if (capacity < 1) {
     return NULL;
   }
@@ -44,9 +44,9 @@ my_stack_t *newStack(size_t capacity) {
   return stack;
 }
 
-size_t stackSize(my_stack_t *stack) { return stack->size + 1; }
+size_t stack_size(my_stack_t *stack) { return stack->size + 1; }
 
-stack_result_t stackPeek(my_stack_t *stack) {
+stack_result_t stack_peek(my_stack_t *stack) {
   stack_result_t result;
   if (stack == NULL) {
     result.status = STACK_ERROR;
@@ -65,13 +65,13 @@ stack_result_t stackPeek(my_stack_t *stack) {
   return result;
 }
 
-STACK_STATUS stackPush(my_stack_t *stack, void *value) {
+STACK_STATUS stack_push(my_stack_t *stack, void *value) {
   if (stack == NULL) {
     return STACK_ERROR;
   }
 
   if (stack->size + 1 == stack->capacity) {
-    if (reallocateStack(stack) == STACK_ERROR) {
+    if (reallocate_stack(stack) == STACK_ERROR) {
       return STACK_ERROR;
     }
   }
@@ -81,7 +81,7 @@ STACK_STATUS stackPush(my_stack_t *stack, void *value) {
   return STACK_OK;
 }
 
-stack_result_t stackPop(my_stack_t *stack) {
+stack_result_t stack_pop(my_stack_t *stack) {
   stack_result_t result;
   if (stack == NULL) {
     result.status = STACK_ERROR;
@@ -101,14 +101,14 @@ stack_result_t stackPop(my_stack_t *stack) {
   return result;
 }
 
-void stackDestroy(my_stack_t *stack, void (*destroyValue)(void *)) {
+void stack_destroy(my_stack_t *stack, void (*destroy_value)(void *)) {
   if (stack == NULL) {
     return;
   }
 
-  if (destroyValue != NULL) {
+  if (destroy_value != NULL) {
     for (int i = 0; i <= stack->size; i++) {
-      destroyValue(stack->values[i]);
+      destroy_value(stack->values[i]);
     }
   }
 
