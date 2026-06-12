@@ -12,49 +12,55 @@ Updated documentation with status codes and return values.
 
 A Last-In-First-Out (LIFO) data structure with dynamic capacity.
 
+#### Types
+
+**`STACK_STATUS`**
+- `STACK_OK` when an operation succeeds
+- `STACK_EMPTY` when peeking or popping from an empty stack
+- `STACK_ERROR` when an operation fails, such as memory allocation failure or a null stack
+
+**`stack_result_t`**
+- Result type returned by peek and pop operations
+- Contains:
+  - `status` — one of the `STACK_STATUS` values above
+  - `value` — the stored pointer when the operation succeeds, or `NULL` otherwise
+
 #### Functions
 
-**`Stack_t *newStack(size_t capacity)`**
+**`my_stack_t *new_stack(size_t capacity)`**
 - Creates a new stack with an initial capacity
-- **Parameters**: `capacity` - Initial number of items the stack can hold
-- **Returns**: Pointer to the new Stack, or NULL on failure
+- **Returns**: Pointer to the new stack, or `NULL` on failure
 
-**`size_t stackSize(Stack_t *stack)`**
+**`size_t stack_size(my_stack_t *stack)`**
 - Returns the number of elements currently in the stack
-- **Parameters**: `stack` - The Stack
+- **Parameters**: `stack` - The stack
 - **Returns**: Number of items in the stack
 
-**`StackResult stackPeek(Stack_t *stack)`**
+**`stack_result_t stack_peek(my_stack_t *stack)`**
 - Retrieves the top element without removing it
-- **Parameters**: `stack` - The Stack
-- **Returns**: `StackResult` with:
-  - `STACK_OK` and the top element in `value` when successful
-  - `STACK_EMPTY` and `NULL` when the stack is empty
-  - `STACK_ERROR` and `NULL` when `stack` is NULL
+- **Parameters**: `stack` - The stack
+- **Returns**: `STACK_OK` with the top value, `STACK_EMPTY` if the stack is empty, `STACK_ERROR` if `stack` is `NULL`
 
-**`STACK_STATUS stackPush(Stack_t *stack, void *value)`**
+**`STACK_STATUS stack_push(my_stack_t *stack, void *value)`**
 - Adds a value to the top of the stack
-- **Parameters**: 
-  - `stack` - The Stack
+- **Parameters**:
+  - `stack` - The stack
   - `value` - Pointer to the value to add
-- **Returns**: `STACK_OK` on success, `STACK_ERROR` on failure (e.g., NULL stack or memory allocation error)
-- **Note**: Caller manages memory for the value
+- **Returns**: `STACK_OK` on success, `STACK_ERROR` on failure
+- **Note**: The stack stores the pointer as-is; the caller manages the pointed-to memory
 
-**`StackResult stackPop(Stack_t *stack)`**
+**`stack_result_t stack_pop(my_stack_t *stack)`**
 - Removes and returns the top element
-- **Parameters**: `stack` - The Stack
-- **Returns**: `StackResult` with:
-  - `STACK_OK` and the removed element in `value` when successful
-  - `STACK_EMPTY` and `NULL` when the stack is empty
-  - `STACK_ERROR` and `NULL` when `stack` is NULL
-- **Note**: Caller is responsible for freeing the returned value
+- **Parameters**: `stack` - The stack
+- **Returns**: `STACK_OK` with the removed value, `STACK_EMPTY` if the stack is empty, `STACK_ERROR` if `stack` is `NULL`
+- **Note**: The caller is responsible for freeing the returned value when needed
 
-**`void stackDestroy(Stack_t *stack, void (*destroyValue)(void *))`**
+**`void stack_destroy(my_stack_t *stack, void (*destroyValue)(void *))`**
 - Frees the stack structure and its internal storage
 - **Parameters**:
-  - `stack` - The Stack to destroy
-  - `destroyValue` - Optional callback used to free each stored value; pass NULL to leave stored values untouched
-- **Warning**: After destroying a stack, accessing the stack or values freed by `destroyValue` causes undefined behavior
+  - `stack` - The stack to destroy
+  - `destroy_value` - Optional callback used to free each stored value; pass `NULL` to leave stored values untouched
+- **Warning**: After destroying a stack, accessing it or any values freed by `destroy_value` causes undefined behavior
 
 ---
 

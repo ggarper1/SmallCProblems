@@ -13,18 +13,18 @@ int rand_int(int min, int max) {
 }
 
 void check_empty_stack(my_stack_t *stack) {
-  stack_result_t result = stackPeek(stack);
+  stack_result_t result = stack_peek(stack);
   assert(result.status == STACK_EMPTY && result.value == NULL);
 
-  result = stackPop(stack);
+  result = stack_pop(stack);
   assert(result.status == STACK_EMPTY && result.value == NULL);
 
-  assert(stackSize(stack) == 0);
+  assert(stack_size(stack) == 0);
 }
 
-void testBasicStack(int itemCount) {
+void test_basic_stack(int itemCount) {
 
-  my_stack_t *stack = newStack(1);
+  my_stack_t *stack = new_stack(1);
 
   check_empty_stack(stack);
 
@@ -32,74 +32,74 @@ void testBasicStack(int itemCount) {
   for (int i = 0; i < itemCount; i++) {
     values[i] = rand_int(MIN, MAX);
 
-    STACK_STATUS status = stackPush(stack, &values[i]);
+    STACK_STATUS status = stack_push(stack, &values[i]);
     assert(status == STACK_OK);
 
-    stack_result_t result = stackPeek(stack);
+    stack_result_t result = stack_peek(stack);
     assert(result.status != STACK_ERROR);
     assert((result.status == STACK_EMPTY && result.value == NULL && i == 0) ||
            (result.status == STACK_OK && *(int *)result.value == values[i]));
 
-    assert(stackSize(stack) == i + 1);
+    assert(stack_size(stack) == i + 1);
   }
 
   for (int i = itemCount - 1; i >= 0; i--) {
-    stack_result_t result = stackPeek(stack);
+    stack_result_t result = stack_peek(stack);
     assert(result.status != STACK_ERROR);
     assert((result.status == STACK_EMPTY && result.value == NULL && i == 0) ||
            (result.status == STACK_OK && *(int *)result.value == values[i]));
 
-    result = stackPop(stack);
+    result = stack_pop(stack);
     assert(result.status != STACK_ERROR);
     assert((result.status == STACK_EMPTY && result.value == NULL && i == 0) ||
            (result.status == STACK_OK && *(int *)result.value == values[i]));
 
-    assert(stackSize(stack) == i);
+    assert(stack_size(stack) == i);
   }
 
   check_empty_stack(stack);
 
-  stackDestroy(stack, NULL);
+  stack_destroy(stack, NULL);
 
   free(values);
 }
 
 void test_nulls() {
-  my_stack_t *stack = newStack(1);
-  assert(stackPush(stack, NULL) == STACK_OK);
+  my_stack_t *stack = new_stack(1);
+  assert(stack_push(stack, NULL) == STACK_OK);
 
-  assert(stackSize(stack) == 1);
+  assert(stack_size(stack) == 1);
 
-  stack_result_t result = stackPeek(stack);
+  stack_result_t result = stack_peek(stack);
   assert(result.status == STACK_OK && result.value == NULL);
 
-  result = stackPop(stack);
+  result = stack_pop(stack);
   assert(result.status == STACK_OK && result.value == NULL);
 
-  result = stackPeek(stack);
+  result = stack_peek(stack);
   assert(result.status == STACK_EMPTY && result.value == NULL);
 
-  assert(stackSize(stack) == 0);
+  assert(stack_size(stack) == 0);
 
-  stackDestroy(stack, NULL);
+  stack_destroy(stack, NULL);
 }
 
 void test_random_push_pops() {
-  my_stack_t *stack = newStack(5);
+  my_stack_t *stack = new_stack(5);
 
   int *values = malloc(sizeof(int) * 100000);
 
   int size = 0;
   while (size < 5) {
     values[size] = rand_int(MIN, MAX);
-    assert(stackPush(stack, &values[size]) == STACK_OK);
+    assert(stack_push(stack, &values[size]) == STACK_OK);
     size++;
   }
 
   for (int i = 0; i < 100000; i++) {
-    assert(stackSize(stack) == size);
+    assert(stack_size(stack) == size);
 
-    stack_result_t result = stackPeek(stack);
+    stack_result_t result = stack_peek(stack);
 
     assert((size > 0 && result.status == STACK_OK &&
             (int *)result.value == &values[size - 1]) ||
@@ -107,10 +107,10 @@ void test_random_push_pops() {
 
     if (size == 0 || rand_int(0, 1)) {
       values[size] = rand_int(MIN, MAX);
-      assert(stackPush(stack, &values[size]) == STACK_OK);
+      assert(stack_push(stack, &values[size]) == STACK_OK);
       size++;
     } else {
-      result = stackPop(stack);
+      result = stack_pop(stack);
       assert((result.status == STACK_OK &&
               *(int *)result.value == values[size - 1] && size > 0) ||
              (result.status == STACK_EMPTY && result.value == NULL));
@@ -118,18 +118,18 @@ void test_random_push_pops() {
     }
   }
 
-  stackDestroy(stack, NULL);
+  stack_destroy(stack, NULL);
   free(values);
 }
 
 void free_value(void *value) { free(value); }
 
 void test_destroy_with_function() {
-  my_stack_t *stack = newStack(5);
+  my_stack_t *stack = new_stack(5);
   int *v = malloc(sizeof(int));
-  stackPush(stack, v);
+  stack_push(stack, v);
 
-  stackDestroy(stack, free_value);
+  stack_destroy(stack, free_value);
 }
 
 int main(int argc, char *argv[]) {
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
 
   int baseItemCount = 100;
   for (int factor = 0; factor < 1000; factor++) {
-    testBasicStack(baseItemCount * factor);
+    test_basic_stack(baseItemCount * factor);
   }
 
   printf("✅ All tests passed!\n");
