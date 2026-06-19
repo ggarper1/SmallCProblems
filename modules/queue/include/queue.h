@@ -3,9 +3,14 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-typedef enum { Q_OK, Q_ERROR } Q_STATUS;
+typedef enum { QUEUE_OK, QUEUE_ERROR, QUEUE_EMPTY } QUEUE_STATUS;
 
-typedef struct Queue Queue_t;
+typedef struct queue queue_t;
+
+typedef struct queue_result {
+  QUEUE_STATUS status;
+  void *value;
+} queue_result_t;
 
 // --- Public Function Prototypes ---
 
@@ -14,7 +19,7 @@ typedef struct Queue Queue_t;
  * @param capacity Initial number of items.
  * @return A pointer to the new Queue, or NULL on failure.
  */
-Queue_t *newQueue(size_t capacity);
+queue_t *new_queue(size_t capacity);
 
 /**
  * Returns a Queue's length (number of values in it).
@@ -22,50 +27,36 @@ Queue_t *newQueue(size_t capacity);
  * @return the number of items in it.
  */
 
-int qLength(Queue_t *queue);
+size_t queue_size(queue_t *queue);
 /**
  * Peeks the front element of a Queue.
  * @param queue The queue.
  * @return A pointer to the element, NULL if the queue is empty.
  */
-void *qPeek(Queue_t *queue);
+queue_result_t queue_peek(queue_t *queue);
 
 /**
  * Adds a value in a Queue.
  * Pointers to the item are stored (caller manages memory).
  * @param queue The Queue.
- * @param value The value to add (Q_OK or Q_ERROR).
+ * @return queue result containing a status (to indicate if the queue is
+ * empty) and the value or null if it's empty.
  */
-Q_STATUS qAdd(Queue_t *queue, void *value);
+QUEUE_STATUS queue_add(queue_t *queue, void *value);
 
 /**
  * Removes the front element of a Queue.
  * @param queue The Queue.
- * @return NULL if the Queue is empty, the pointer to the value if it
+ * @return queue result containing a status (to indicate if the queue is empty)
+ * and the value or null if it's empty.
  */
-void *qRemove(Queue_t *queue);
+queue_result_t queue_remove(queue_t *queue);
 
 /**
  * Destroys the Queue and frees all allocated memory.
  * @param queue The Queue to destroy.
+ * @param destroy_value the function with which to destroy values with or NULL.
  */
-void qDestroy(Queue_t *queue);
-
-/**
- * Destroys the Queue and along with all the values in it.
- * After calling this method, accessing a element that had
- * been stored in the list can lead to erros due to it being
- * freed.
- * @param queue The Queue to destroy.
- */
-void qDestroyAll(Queue_t *queue);
-
-/**
- * Prints the Queue.
- * @param queue The Queue to print.
- */
-void printQueue(Queue_t *queue,
-                void (*repr)(void *value, char *buffer, int bufferSize),
-                int bufferSize);
+void queue_destroy(queue_t *queue, void (*destroy_value)(void *));
 
 #endif
