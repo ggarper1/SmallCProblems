@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int numTests = 10000;
+const int num_tests = 10000;
 const int MIN = -10000000;
 const int MAX = 10000000;
 
@@ -40,7 +40,7 @@ void test_pop_peek(bool_stack_t *stack, int *items, int size) {
 }
 
 int main(int argc, char *argv[]) {
-  for (int i = 0; i < numTests; i++) {
+  for (int i = 0; i < num_tests; i++) {
     bool_stack_t *stack = new_bool_stack(2);
 
     int *items;
