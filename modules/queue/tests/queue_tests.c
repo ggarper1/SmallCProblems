@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-const int numTests = 1000;
 const int MIN = -10000000;
 const int MAX = 10000000;
 
@@ -82,12 +81,9 @@ void test_basic(int item_count) {
   free(values);
 }
 
-void test_random_adds_removes() {}
-
 int main(int argc, char *argv[]) {
   test_nulls();
   test_destroy_with_function();
-  test_random_adds_removes();
 
   int baseItemCount = 100;
   for (int factor = 1; factor < 1000; factor++) {
