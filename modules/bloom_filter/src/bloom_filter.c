@@ -40,6 +40,7 @@ bloom_filter_t *new_bloom_filter(size_t num_items, double desired_fp_rate,
 
   filter->bit_array = calloc(num_words, 4);
   if (filter->bit_array == NULL) {
+    free(filter);
     return NULL;
   }
 

@@ -1,7 +1,7 @@
 #include <stddef.h>
 
-#ifndef LINKEDLIST_H
-#define LINKEDLIST_H
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
 
 typedef enum {
   LINKED_LIST_OK,
