@@ -1,23 +1,70 @@
 #include "../include/trie.h"
-#include "../../linked_list/include/linked_list.h"
-#include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
-#define RETURN_TRIE_NOT_FOUND(res)                                             \
-  do {                                                                         \
-    (res).status = TRIE_NOT_FOUND;                                             \
-    (res).value.node = NULL;                                                   \
-    return (res);                                                              \
-  } while (0)
+#define RESULT(status_) ((trie_result_t){.status = (status_)})
 
-#define RETURN_TRIE_ERROR(res)                                                 \
-  do {                                                                         \
-    (res).status = TRIE_ERROR;                                                 \
-    (res).value.node = NULL;                                                   \
-    return (res);                                                              \
-  } while (0)
+// ---------------------------------------------------------------------------
+// Sorted child lists
+// ---------------------------------------------------------------------------
 
-trie_t *new_trie() {
+// Returns the link (list head or some `next` field) where `c` is, or where it
+// would have to be inserted to keep the list sorted.
+static linked_list_node_t **find_link(linked_list_node_t **link, char c) {
+  while (*link != NULL && (*link)->node->character < c) {
+    link = &(*link)->next;
+  }
+  return link;
+}
+
+static bool link_holds(linked_list_node_t **link, char c) {
+  return *link != NULL && (*link)->node->character == c;
+}
+
+static trie_node_t *find_child(linked_list_node_t *children, char c) {
+  linked_list_node_t **link = find_link(&children, c);
+  return link_holds(link, c) ? (*link)->node : NULL;
+}
+
+// Inserts a new trie node at `link`, returning it (NULL if out of memory)
+static trie_node_t *insert_at(linked_list_node_t **link, char c, void *value) {
+  linked_list_node_t *ll_node = malloc(sizeof(linked_list_node_t));
+  trie_node_t *node = malloc(sizeof(trie_node_t));
+  if (ll_node == NULL || node == NULL) {
+    free(ll_node);
+    free(node);
+    return NULL;
+  }
+
+  node->character = c;
+  node->value = value;
+  node->children = NULL;
+
+  ll_node->node = node;
+  ll_node->next = *link;
+  *link = ll_node;
+  return node;
+}
+
+static trie_node_t *find_or_insert_child(linked_list_node_t **children,
+                                         char c) {
+  linked_list_node_t **link = find_link(children, c);
+  return link_holds(link, c) ? (*link)->node : insert_at(link, c, NULL);
+}
+
+// Unlinks the list node at `link` and frees it along with its trie node
+static void unlink_and_free(linked_list_node_t **link) {
+  linked_list_node_t *ll_node = *link;
+  *link = ll_node->next;
+  free(ll_node->node);
+  free(ll_node);
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+trie_t *new_trie(void) {
   trie_t *trie = malloc(sizeof(trie_t));
   if (trie == NULL) {
     return NULL;
@@ -28,192 +75,113 @@ trie_t *new_trie() {
   return trie;
 }
 
-size_t trie_size(trie_t *trie) { return trie->size; }
+size_t trie_size(const trie_t *trie) { return trie->size; }
 
-trie_node_t *find_trie_node(linked_list_node_t *node, char character) {
-  if (node == NULL) {
-    return NULL;
-  }
-
-  while (node->node->character < character) {
-    if (node->next == NULL) {
-      return NULL;
-    }
-
-    node = node->next;
-  }
-  return node->node->character != character ? NULL : node->node;
-  return node->node;
-}
-
-trie_result_t trie_get(trie_t *trie, char *key) {
-  trie_result_t result;
-  if (trie->roots == NULL) {
-    RETURN_TRIE_NOT_FOUND(result);
-  }
-
-  trie_node_t *trie_node;
-  int idx = 0;
-  linked_list_node_t *nodes = trie->roots;
-  while (key[idx] != '\0') {
-    trie_node = find_trie_node(nodes, key[idx]);
-
-    if (trie_node == NULL) {
-      RETURN_TRIE_NOT_FOUND(result);
-    }
-
-    nodes = trie_node->children;
-    idx++;
-  }
-  result.status = TRIE_OK;
-  result.value.node = find_trie_node(nodes, '\0');
-
-  return result;
-}
-
-linked_list_node_t *create_ll_node(char character, void *value) {
-  linked_list_node_t *ll_node = malloc(sizeof(linked_list_node_t));
-  if (ll_node == NULL) {
-    return NULL;
-  }
-
-  trie_node_t *trie_node = malloc(sizeof(trie_node_t));
-  if (trie_node == NULL) {
-    return NULL;
-  }
-
-  ll_node->prev = NULL;
-  ll_node->next = NULL;
-  ll_node->node = trie_node;
-
-  trie_node->character = character;
-  trie_node->value = value;
-  trie_node->children = NULL;
-
-  return ll_node;
-}
-
-linked_list_node_t *add_new_nodes(char *key, void *value, int idx) {
-  int is_done = key[idx] == '\0';
-
-  linked_list_node_t *first_ll_node =
-      create_ll_node(key[idx], is_done ? NULL : value);
-  if (is_done) {
-    return first_ll_node;
-  }
-
-  idx++;
-  linked_list_node_t *ll_node = first_ll_node;
-  linked_list_node_t *new_node;
-  while (key[idx] != '\0') {
-    new_node = create_ll_node(key[idx], NULL);
-    ll_node->next = new_node;
-    new_node->prev = ll_node;
-
-    ll_node = new_node;
-    idx++;
-  }
-
-  new_node = create_ll_node(key[idx], value);
-  ll_node->next = new_node;
-  new_node->prev = ll_node;
-
-  return first_ll_node;
-}
-
-// TODO: return indx too
-linked_list_node_t *traverse_trie(trie_t *trie, char *key) {
-  linked_list_node_t *node = trie->roots;
-
-  int idx = 0;
-  while (key[idx] != '\0') {
-    while (node->next != NULL && node->node->character < key[idx]) {
-      node = node->next;
-    }
-
-    if (node)
-      idx++;
-  }
-}
-
-trie_node_t *find_or_add_trie_node(linked_list_node_t **node, char character,
-                                   void *value) {
-  if (*node == NULL) {
-    *node = create_ll_node(character, value);
-    return (*node)->node;
-  }
-  // TODO: Fix this. You're using *node to iterate. THis changes the trie->roots
-  // and makes it that the root id dimplye the node with character '/0''
-  linked_list_node_t *n = *node;
-  while (n->node->character < character) {
-    if (n->next == NULL) {
-      linked_list_node_t *ll_node = create_ll_node(character, value);
-      n->next = ll_node;
-      ll_node->prev = n;
-      return ll_node->node;
-    }
-
-    n = n->next;
-  }
-  if (n->node->character != character) {
-    linked_list_node_t *ll_node = create_ll_node(character, value);
-
-    ll_node->prev = n->prev;
-    ll_node->next = n;
-
-    n->prev->next = ll_node;
-    n->prev = ll_node;
-
-    return ll_node->node;
-  }
-  return n->node;
-}
-
-trie_result_t trie_add(trie_t *trie, char *key, void *value) {
-  trie_result_t result;
+trie_result_t trie_get(const trie_t *trie, const char *key) {
   if (trie == NULL) {
-    RETURN_TRIE_ERROR(result);
+    return RESULT(TRIE_ERROR);
   }
 
-  trie_node_t *node;
-  linked_list_node_t **nodes = &(trie->roots);
-  int idx = 0;
-  while (key[idx] != '\0') {
-    node = find_or_add_trie_node(nodes, key[idx], NULL);
-    if (nodes == NULL) {
-      RETURN_TRIE_ERROR(result);
+  // Walk the key including its '\0', which is the node holding the value
+  linked_list_node_t *children = trie->roots;
+  for (const char *c = key;; c++) {
+    trie_node_t *node = find_child(children, *c);
+    if (node == NULL) {
+      return RESULT(TRIE_NOT_FOUND);
     }
-    *nodes = node->children;
-    idx++;
-  }
-
-  node = find_or_add_trie_node(nodes, key[idx], value);
-  if (node == NULL) {
-    RETURN_TRIE_ERROR(result);
-  }
-  if (node->value == value) {
-    result.status = TRIE_OK;
-    result.value.node = node;
-  } else {
-    result.status = TRIE_ALREADY_EXISTS;
-    result.value.node = NULL;
-  }
-
-  printf("What was added: \n");
-  linked_list_node_t *nn = trie->roots;
-  while (nn != NULL) {
-    if (nn->node->character == '\0') {
-
-      printf("\tChar: \\0\n");
-    } else {
-      printf("\tChar: %c\n", nn->node->character);
+    if (*c == '\0') {
+      return (trie_result_t){.status = TRIE_OK, .value.node = node};
     }
-    nn = nn->node->children;
+    children = node->children;
   }
-
-  return result;
 }
 
-// trie_result_t trie_remove(trie_t *trie, char *key) {}
+trie_result_t trie_add(trie_t *trie, const char *key, void *value) {
+  if (trie == NULL) {
+    return RESULT(TRIE_ERROR);
+  }
 
-void trie_destroy(trie_t *trie, void (*destroy_value)(void *)) {}
+  linked_list_node_t **children = &trie->roots;
+  for (const char *c = key; *c != '\0'; c++) {
+    trie_node_t *node = find_or_insert_child(children, *c);
+    if (node == NULL) {
+      return RESULT(TRIE_ERROR);
+    }
+    children = &node->children;
+  }
+
+  linked_list_node_t **end = find_link(children, '\0');
+  if (link_holds(end, '\0')) {
+    return RESULT(TRIE_ALREADY_EXISTS);
+  }
+
+  trie_node_t *node = insert_at(end, '\0', value);
+  if (node == NULL) {
+    return RESULT(TRIE_ERROR);
+  }
+
+  trie->size++;
+  return (trie_result_t){.status = TRIE_OK, .value.node = node};
+}
+
+// Removes `key` from the list `*children`, storing its value in `*value`.
+// On the way back up, nodes left without children are freed too.
+static bool remove_key(linked_list_node_t **children, const char *key,
+                       void **value) {
+  linked_list_node_t **link = find_link(children, *key);
+  if (!link_holds(link, *key)) {
+    return false;
+  }
+
+  trie_node_t *node = (*link)->node;
+  if (*key == '\0') {
+    *value = node->value;
+  } else if (!remove_key(&node->children, key + 1, value)) {
+    return false;
+  } else if (node->children != NULL) {
+    return true; // Still used by other keys
+  }
+
+  unlink_and_free(link);
+  return true;
+}
+
+trie_result_t trie_remove(trie_t *trie, const char *key) {
+  if (trie == NULL) {
+    return RESULT(TRIE_ERROR);
+  }
+
+  void *value;
+  if (!remove_key(&trie->roots, key, &value)) {
+    return RESULT(TRIE_NOT_FOUND);
+  }
+
+  trie->size--;
+  return (trie_result_t){.status = TRIE_OK, .value.value = value};
+}
+
+// Recursion depth is bounded by the longest key
+static void destroy_list(linked_list_node_t *list,
+                         void (*destroy_value)(void *)) {
+  while (list != NULL) {
+    linked_list_node_t *next = list->next;
+    trie_node_t *node = list->node;
+
+    destroy_list(node->children, destroy_value);
+    if (destroy_value != NULL && node->value != NULL) {
+      destroy_value(node->value);
+    }
+    free(node);
+    free(list);
+
+    list = next;
+  }
+}
+
+void trie_destroy(trie_t *trie, void (*destroy_value)(void *)) {
+  if (trie == NULL) {
+    return;
+  }
+  destroy_list(trie->roots, destroy_value);
+  free(trie);
+}

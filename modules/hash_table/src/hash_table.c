@@ -1,5 +1,5 @@
 #include "../include/hash_table.h"
-#include "avl_tree.h"
+#include "../../avl_tree/include/avl_tree.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -299,13 +299,10 @@ void hash_table_print(hash_table_t *table,
     return;
   }
 
-  print_context_t context = {repr_key,
-                             malloc(sizeof(char) * key_buffer_size),
-                             key_buffer_size,
-                             repr_value,
-                             malloc(sizeof(char) * value_buffer_size),
-                             value_buffer_size,
-                             1};
+  print_context_t context = {
+      repr_key,   malloc(sizeof(char) * key_buffer_size),   key_buffer_size,
+      repr_value, malloc(sizeof(char) * value_buffer_size), value_buffer_size,
+      1};
   if (context.key_buffer == NULL || context.value_buffer == NULL) {
     free(context.key_buffer);
     free(context.value_buffer);
