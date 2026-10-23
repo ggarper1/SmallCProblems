@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifndef BLOOM_FILTER
-#define BLOOM_FILTER
+#ifndef BLOOM_FILTER_H
+#define BLOOM_FILTER_H
 
 typedef struct bloom_filter bloom_filter_t;
 

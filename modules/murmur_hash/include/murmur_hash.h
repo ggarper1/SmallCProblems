@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifndef MURMUR_HASH
-#define MURMUR_HASH
+#ifndef MURMUR_HASH_H
+#define MURMUR_HASH_H
 
 uint64_t murmur_hash64_str(const char *key, uint64_t seed);
 
